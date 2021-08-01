@@ -1,11 +1,9 @@
 [package]
-name = "bevy-pancam"
+name = "bevy_pancam"
 version = "0.1.0"
 edition = "2018"
 license = "MIT OR Apache-2.0"
 readme = "readme.md"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
@@ -19,4 +17,3 @@ rand = "0.8"
 
 [dev-dependencies.bevy]
 version = "0.5"
-#features = ["bevy_winit", "bevy_wgpu"]
