@@ -8,7 +8,8 @@ readme = "readme.md"
 [dependencies]
 
 [dependencies.bevy]
-version = "0.5"
+git = "https://github.com/bevyengine/bevy"
+branch = "main"
 features = ["render"]
 default-features = false
 
@@ -16,4 +17,6 @@ default-features = false
 rand = "0.8"
 
 [dev-dependencies.bevy]
-version = "0.5"
+git = "https://github.com/bevyengine/bevy"
+branch = "main"
+features = ["render"]

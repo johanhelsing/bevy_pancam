@@ -4,7 +4,7 @@ use bevy::{input::mouse::{MouseScrollUnit, MouseWheel}, prelude::*, render::came
 pub struct PanCamPlugin;
 
 impl Plugin for PanCamPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app
         .add_system(camera_movement.system())
         .add_system(camera_zoom.system());
