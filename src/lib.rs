@@ -63,6 +63,7 @@ fn camera_movement(
     *last_pos = Some(current_pos);
 }
 
+#[derive(Component)]
 pub struct PanCam {
     grab_buttons: Vec<MouseButton>,
 }
