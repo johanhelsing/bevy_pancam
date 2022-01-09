@@ -1,4 +1,8 @@
-use bevy::{input::mouse::{MouseScrollUnit, MouseWheel}, prelude::*, render::camera::{OrthographicProjection, ScalingMode}};
+use bevy::{
+    input::mouse::{MouseScrollUnit, MouseWheel},
+    prelude::*,
+    render::camera::OrthographicProjection,
+};
 
 #[derive(Default)]
 pub struct PanCamPlugin;
