@@ -27,3 +27,22 @@ commands.spawn_bundle(OrthographicCameraBundle::new_2d())
 ```
 
 See the [`simple`](./examples/simple.rs) example.
+
+## Bevy Version Support
+
+The `main` branch targets the latest bevy release.
+
+I intend to support the `main` branch of Bevy in the `bevy-main` branch.
+
+|bevy|bevy_mod_picking|
+|---|---|
+|0.6|0.2|
+|0.5|0.1|
+
+## License
+
+MIT or Apache-2.0
+
+## Contributions
+
+PRs welcome!
