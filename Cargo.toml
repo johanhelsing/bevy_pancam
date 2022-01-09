@@ -6,17 +6,8 @@ license = "MIT OR Apache-2.0"
 readme = "readme.md"
 
 [dependencies]
-
-[dependencies.bevy]
-git = "https://github.com/bevyengine/bevy"
-branch = "main"
-features = ["render"]
-default-features = false
+bevy = { version = "0.6",  features = ["render"], default-features = false }
 
 [dev-dependencies]
+bevy = { version = "0.6", features = ["render"] }
 rand = "0.8"
-
-[dev-dependencies.bevy]
-git = "https://github.com/bevyengine/bevy"
-branch = "main"
-features = ["render"]
