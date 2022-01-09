@@ -3,7 +3,7 @@ use bevy_pancam::{PanCam, PanCamPlugin};
 use rand::prelude::random;
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(PanCamPlugin::default())
         .add_startup_system(setup.system())
