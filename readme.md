@@ -27,9 +27,3 @@ commands.spawn_bundle(OrthographicCameraBundle::new_2d())
 ```
 
 See the [`simple`](./examples/simple.rs) example.
-
-
-
-## Issues
-
-Zoom doesn't work on bevy 0.5 unless you cherry-pick this patch: https://github.com/bevyengine/bevy/pull/2015
