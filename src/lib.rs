@@ -9,8 +9,7 @@ pub struct PanCamPlugin;
 
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(camera_movement.system())
-            .add_system(camera_zoom.system());
+        app.add_system(camera_movement).add_system(camera_zoom);
     }
 }
 
