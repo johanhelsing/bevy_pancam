@@ -11,8 +11,8 @@ categories = ["game-development"]
 repository = "https://github.com/johanhelsing/bevy_pancam"
 
 [dependencies]
-bevy = { version = "0.6",  features = ["render"], default-features = false }
+bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", features = ["render"], default-features = false }
 
 [dev-dependencies]
-bevy = { version = "0.6", features = ["render"] }
+bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", features = ["render"] }
 rand = "0.8"
