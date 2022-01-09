@@ -9,9 +9,8 @@ pub struct PanCamPlugin;
 
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
-        app
-        .add_system(camera_movement.system())
-        .add_system(camera_zoom.system());
+        app.add_system(camera_movement.system())
+            .add_system(camera_zoom.system());
     }
 }
 
@@ -19,16 +18,15 @@ impl Plugin for PanCamPlugin {
 fn camera_zoom(
     mut query: Query<(&PanCam, &mut OrthographicProjection)>,
     mut scroll_events: EventReader<MouseWheel>,
-)
-{
+) {
     let pixels_per_line = 100.; // Maybe make configurable?
-    let scroll = scroll_events.iter()
-        .map(|ev| 
-            match ev.unit {
-                MouseScrollUnit::Pixel => ev.y,
-                MouseScrollUnit::Line => ev.y * pixels_per_line,
-            }
-        ).sum::<f32>();
+    let scroll = scroll_events
+        .iter()
+        .map(|ev| match ev.unit {
+            MouseScrollUnit::Pixel => ev.y,
+            MouseScrollUnit::Line => ev.y * pixels_per_line,
+        })
+        .sum::<f32>();
 
     if scroll == 0. {
         return;
@@ -43,22 +41,26 @@ fn camera_movement(
     mut windows: ResMut<Windows>,
     mouse_buttons: Res<Input<MouseButton>>,
     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
-    mut last_pos: Local<Option<Vec2>>
+    mut last_pos: Local<Option<Vec2>>,
 ) {
     let window = windows.get_primary_mut().unwrap();
 
     // Use position instead of MouseMotion, otherwise we don't get acceleration movement
     let current_pos = match window.cursor_position() {
         Some(current_pos) => current_pos,
-        None => return
+        None => return,
     };
     let delta = current_pos - last_pos.unwrap_or(current_pos);
 
     for (cam, mut transform, projection) in query.iter_mut() {
-        if cam.grab_buttons.iter().any(|btn| mouse_buttons.pressed(*btn)) {
+        if cam
+            .grab_buttons
+            .iter()
+            .any(|btn| mouse_buttons.pressed(*btn))
+        {
             let scaling = Vec2::new(
-                window.width() / (projection.right - projection.left), 
-                window.height() / (projection.top - projection.bottom)
+                window.width() / (projection.right - projection.left),
+                window.height() / (projection.top - projection.bottom),
             ) * projection.scale;
 
             transform.translation -= (delta * scaling).extend(0.);
