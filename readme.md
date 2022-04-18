@@ -1,4 +1,4 @@
-# bevy-pancam
+# bevy_pancam
 
 [![crates.io](https://img.shields.io/crates/v/bevy_pancam.svg)](https://crates.io/crates/bevy_pancam)
 ![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)
