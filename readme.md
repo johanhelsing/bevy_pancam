@@ -41,6 +41,7 @@ I intend to support the `main` branch of Bevy in the `bevy-main` branch.
 
 |bevy|bevy_pancam|
 |---|---|
+|0.7|0.3, main|
 |0.6|0.2|
 |0.5|0.1|
 

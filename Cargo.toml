@@ -1,6 +1,6 @@
 [package]
 name = "bevy_pancam"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "readme.md"
@@ -11,8 +11,8 @@ categories = ["game-development"]
 repository = "https://github.com/johanhelsing/bevy_pancam"
 
 [dependencies]
-bevy = { version = "0.6",  features = ["render"], default-features = false }
+bevy = { version = "0.7",  features = ["render"], default-features = false }
 
 [dev-dependencies]
-bevy = { version = "0.6", features = ["render"] }
+bevy = { version = "0.7", features = ["render"] }
 rand = "0.8"
