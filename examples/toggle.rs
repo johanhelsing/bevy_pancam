@@ -29,10 +29,10 @@ fn setup(mut commands: Commands) {
                 sprite: Sprite {
                     color,
                     custom_size,
-                    ..Default::default()
+                    ..default()
                 },
                 transform: Transform::from_xyz(x, y, 0.),
-                ..Default::default()
+                ..default()
             });
         }
     }
