@@ -1,12 +1,12 @@
 [package]
 name = "bevy_pancam"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "readme.md"
 authors = ["Johan Helsing <johanhelsing@gmail.com>"]
 description = "A camera that allows panning by dragging with the mouse"
-keywords = ["gamedev"]
+keywords = ["gamedev", "bevy"]
 categories = ["game-development"]
 repository = "https://github.com/johanhelsing/bevy_pancam"
 

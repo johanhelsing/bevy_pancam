@@ -7,6 +7,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(PanCamPlugin::default())
         .add_startup_system(setup)
+        .add_system(toggle_key)
         .run();
 }
 
@@ -33,6 +34,14 @@ fn setup(mut commands: Commands) {
                 transform: Transform::from_xyz(x, y, 0.),
                 ..default()
             });
+        }
+    }
+}
+
+fn toggle_key(mut query: Query<&mut PanCam>, keys: Res<Input<KeyCode>>) {
+    if keys.just_pressed(KeyCode::Space) {
+        for mut pancam in query.iter_mut() {
+            pancam.enabled = !pancam.enabled;
         }
     }
 }

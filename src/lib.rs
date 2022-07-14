@@ -31,8 +31,10 @@ fn camera_zoom(
         return;
     }
 
-    for (_cam, mut projection) in query.iter_mut() {
-        projection.scale = (projection.scale * (1. + -scroll * 0.001)).max(0.00001);
+    for (cam, mut projection) in query.iter_mut() {
+        if cam.enabled {
+            projection.scale = (projection.scale * (1. + -scroll * 0.001)).max(0.00001);
+        }
     }
 }
 
@@ -52,10 +54,11 @@ fn camera_movement(
     let delta = current_pos - last_pos.unwrap_or(current_pos);
 
     for (cam, mut transform, projection) in query.iter_mut() {
-        if cam
-            .grab_buttons
-            .iter()
-            .any(|btn| mouse_buttons.pressed(*btn))
+        if cam.enabled
+            && cam
+                .grab_buttons
+                .iter()
+                .any(|btn| mouse_buttons.pressed(*btn))
         {
             let scaling = Vec2::new(
                 window.width() / (projection.right - projection.left),
@@ -70,13 +73,15 @@ fn camera_movement(
 
 #[derive(Component)]
 pub struct PanCam {
-    grab_buttons: Vec<MouseButton>,
+    pub grab_buttons: Vec<MouseButton>,
+    pub enabled: bool,
 }
 
 impl Default for PanCam {
     fn default() -> Self {
         Self {
             grab_buttons: vec![MouseButton::Left, MouseButton::Right, MouseButton::Middle],
+            enabled: true,
         }
     }
 }
