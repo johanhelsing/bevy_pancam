@@ -41,7 +41,7 @@ fn camera_zoom(
             let old_scale = proj.scale;
             proj.scale = (proj.scale * (1. + -scroll * 0.001)).max(0.00001);
 
-            if cam.track_mouse {
+            if cam.zoom_to_cursor {
                 let proj_size = Vec2::new(proj.right, proj.top);
                 let mouse_world_pos = pos.translation.truncate() + mouse_normalized_screen_pos * proj_size * old_scale;
                 pos.translation = (mouse_world_pos - mouse_normalized_screen_pos * proj_size * proj.scale).extend(pos.translation.z);
@@ -87,7 +87,7 @@ fn camera_movement(
 pub struct PanCam {
     pub grab_buttons: Vec<MouseButton>,
     pub enabled: bool,
-    pub track_mouse: bool,
+    pub zoom_to_cursor: bool,
 }
 
 impl Default for PanCam {
@@ -95,7 +95,7 @@ impl Default for PanCam {
         Self {
             grab_buttons: vec![MouseButton::Left, MouseButton::Right, MouseButton::Middle],
             enabled: true,
-            track_mouse: false,
+            zoom_to_cursor: false,
         }
     }
 }
