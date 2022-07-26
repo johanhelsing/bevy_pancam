@@ -28,10 +28,14 @@ App::build()
 
 ```rust
 commands.spawn_bundle(OrthographicCameraBundle::new_2d())
-    .insert(PanCam::default());
+    .insert(PanCam {
+        grab_buttons: vec![MouseButton::Left, MouseButton::Middle],
+        enabled: true,
+        zoom_to_cursor: true,
+    });
 ```
 
-See the [`simple`](./examples/simple.rs) example.
+See the [`simple`](./examples/simple.rs) and [`toggle`](./examples/toggle.rs) examples.
 
 ## Bevy Version Support
 
