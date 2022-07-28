@@ -34,8 +34,9 @@ fn camera_zoom(
 
     let window = windows.get_primary().unwrap();
     let window_size = Vec2::new(window.width(), window.height());
-    let mouse_normalized_screen_pos = (window.cursor_position().unwrap() / window_size) * 2. - Vec2::ONE;
-    
+    let mouse_normalized_screen_pos =
+        (window.cursor_position().unwrap() / window_size) * 2. - Vec2::ONE;
+
     for (cam, mut proj, mut pos) in query.iter_mut() {
         if cam.enabled {
             let old_scale = proj.scale;
@@ -43,8 +44,11 @@ fn camera_zoom(
 
             if cam.zoom_to_cursor {
                 let proj_size = Vec2::new(proj.right, proj.top);
-                let mouse_world_pos = pos.translation.truncate() + mouse_normalized_screen_pos * proj_size * old_scale;
-                pos.translation = (mouse_world_pos - mouse_normalized_screen_pos * proj_size * proj.scale).extend(pos.translation.z);
+                let mouse_world_pos = pos.translation.truncate()
+                    + mouse_normalized_screen_pos * proj_size * old_scale;
+                pos.translation = (mouse_world_pos
+                    - mouse_normalized_screen_pos * proj_size * proj.scale)
+                    .extend(pos.translation.z);
             }
         }
     }
