@@ -42,6 +42,10 @@ fn camera_zoom(
             let old_scale = proj.scale;
             proj.scale = (proj.scale * (1. + -scroll * 0.001)).max(cam.min_scale);
 
+            if let Some(max_scale) = cam.max_scale {
+                proj.scale = proj.scale.min(max_scale);
+            }
+
             if cam.zoom_to_cursor {
                 let proj_size = Vec2::new(proj.right, proj.top);
                 let mouse_world_pos = pos.translation.truncate()
@@ -103,6 +107,11 @@ pub struct PanCam {
     ///
     /// The orthographic projection's scale will be clamped at this value when zooming in
     pub min_scale: f32,
+    /// The maximum scale for the camera
+    ///
+    /// If present, the orthographic projection's scale will be clamped at
+    /// this value when zooming out.
+    pub max_scale: Option<f32>,
 }
 
 impl Default for PanCam {
@@ -112,6 +121,7 @@ impl Default for PanCam {
             enabled: true,
             zoom_to_cursor: false,
             min_scale: 0.00001,
+            max_scale: None,
         }
     }
 }
