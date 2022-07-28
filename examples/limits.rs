@@ -7,14 +7,19 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(PanCamPlugin::default())
         .add_startup_system(setup)
-        .add_system(toggle_key)
         .run();
 }
 
 fn setup(mut commands: Commands) {
     commands
-        .spawn_bundle(Camera2dBundle::default())
-        .insert(PanCam::default());
+        .spawn_bundle(OrthographicCameraBundle::new_2d())
+        .insert(PanCam {
+            // Set max scale in order to prevent the camera from zooming too far out
+            max_scale: Some(40.),
+            // Set min scale in order to prevent the camera from zooming too far in
+            min_scale: 1.,
+            ..default()
+        });
 
     let n = 20;
     let spacing = 50.;
@@ -34,21 +39,6 @@ fn setup(mut commands: Commands) {
                 transform: Transform::from_xyz(x, y, 0.),
                 ..default()
             });
-        }
-    }
-}
-
-fn toggle_key(mut query: Query<&mut PanCam>, keys: Res<Input<KeyCode>>) {
-    // Space = Toggle Panning
-    if keys.just_pressed(KeyCode::Space) {
-        for mut pancam in query.iter_mut() {
-            pancam.enabled = !pancam.enabled;
-        }
-    }
-    // T = Toggle Zoom to Cursor
-    if keys.just_pressed(KeyCode::T) {
-        for mut pancam in query.iter_mut() {
-            pancam.zoom_to_cursor = !pancam.zoom_to_cursor;
         }
     }
 }
