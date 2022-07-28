@@ -40,7 +40,11 @@ fn camera_zoom(
     for (cam, mut proj, mut pos) in query.iter_mut() {
         if cam.enabled {
             let old_scale = proj.scale;
-            proj.scale = (proj.scale * (1. + -scroll * 0.001)).max(0.00001);
+            proj.scale = (proj.scale * (1. + -scroll * 0.001)).max(cam.min_scale);
+
+            if let Some(max_scale) = cam.max_scale {
+                proj.scale = proj.scale.min(max_scale);
+            }
 
             if cam.zoom_to_cursor {
                 let proj_size = Vec2::new(proj.right, proj.top);
@@ -99,6 +103,15 @@ pub struct PanCam {
     /// When false, the camera will stay in place, zooming towards the
     /// middle of the screen
     pub zoom_to_cursor: bool,
+    /// The minimum scale for the camera
+    ///
+    /// The orthographic projection's scale will be clamped at this value when zooming in
+    pub min_scale: f32,
+    /// The maximum scale for the camera
+    ///
+    /// If present, the orthographic projection's scale will be clamped at
+    /// this value when zooming out.
+    pub max_scale: Option<f32>,
 }
 
 impl Default for PanCam {
@@ -107,6 +120,8 @@ impl Default for PanCam {
             grab_buttons: vec![MouseButton::Left, MouseButton::Right, MouseButton::Middle],
             enabled: true,
             zoom_to_cursor: false,
+            min_scale: 0.00001,
+            max_scale: None,
         }
     }
 }
