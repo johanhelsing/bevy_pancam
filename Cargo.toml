@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 name = "bevy_pancam"
 readme = "readme.md"
 repository = "https://github.com/johanhelsing/bevy_pancam"
-version = "0.3.0"
+version = "0.4.0"
 
 [dependencies]
 bevy = {version = "0.7", features = ["render"], default-features = false}
