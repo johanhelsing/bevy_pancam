@@ -13,7 +13,6 @@ impl Plugin for PanCamPlugin {
     }
 }
 
-// Zoom doesn't work on bevy 0.5 due to: https://github.com/bevyengine/bevy/pull/2015
 fn camera_zoom(
     mut query: Query<(&PanCam, &mut OrthographicProjection, &mut Transform)>,
     mut scroll_events: EventReader<MouseWheel>,
