@@ -7,7 +7,7 @@
 
 A 2d-camera plugin for bevy that works with orthographic cameras.
 
-The motivation is that this could be used for something like a map editor for a 2D game.
+The motivation is that this could be used for something like a map editor for a 2d game.
 
 ## Controls
 
@@ -26,12 +26,21 @@ App::build()
     .add_plugin(PanCamPlugin::default());
 ```
 
+Add the component to an orthographic camera:
+
+```rust
+commands.spawn_bundle(OrthographicCameraBundle::new_2d())
+    .insert(PanCam::default());
+```
+
+Alternatively, set the fields of the `PanCam` component to customize behavior:
+
 ```rust
 commands.spawn_bundle(OrthographicCameraBundle::new_2d())
     .insert(PanCam {
-        grab_buttons: vec![MouseButton::Left, MouseButton::Middle],
-        enabled: true,
-        zoom_to_cursor: true,
+        grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
+        enabled: true, // when false, controls are disabled. See toggle example.
+        zoom_to_cursor: true, // whether to zoom towards the mouse or the center of the screen
     });
 ```
 
