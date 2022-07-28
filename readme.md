@@ -43,7 +43,7 @@ commands.spawn_bundle(OrthographicCameraBundle::new_2d())
         grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
         enabled: true, // when false, controls are disabled. See toggle example.
         zoom_to_cursor: true, // whether to zoom towards the mouse or the center of the screen
-        min: 1., // prevent the camera from zooming too far in
+        min_scale: 1., // prevent the camera from zooming too far in
         max_scale: Some(40.), // prevent the camera from zooming too far out
     });
 ```
