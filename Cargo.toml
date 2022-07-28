@@ -1,18 +1,22 @@
 [package]
-name = "bevy_pancam"
-version = "0.3.0"
-edition = "2021"
-license = "MIT OR Apache-2.0"
-readme = "readme.md"
 authors = ["Johan Helsing <johanhelsing@gmail.com>"]
-description = "A camera that allows panning by dragging with the mouse"
-keywords = ["gamedev", "bevy"]
 categories = ["game-development"]
+description = "A camera that allows panning by dragging with the mouse"
+edition = "2021"
+keywords = ["gamedev", "bevy"]
+license = "MIT OR Apache-2.0"
+name = "bevy_pancam"
+readme = "readme.md"
 repository = "https://github.com/johanhelsing/bevy_pancam"
+version = "0.3.0"
 
 [dependencies]
-bevy = { version = "0.7",  features = ["render"], default-features = false }
+bevy = {version = "0.7", features = ["render"], default-features = false}
 
 [dev-dependencies]
-bevy = { version = "0.7", features = ["render"] }
+bevy = {version = "0.7", default-features = false, features = [
+  "render",
+  "bevy_winit",
+  "x11", # github actions runners don't have libxkbcommon installed, so can't use wayland
+]}
 rand = "0.8"
