@@ -4,6 +4,7 @@ use bevy::{
     render::camera::OrthographicProjection,
 };
 
+/// Plugin that adds the necessary systems for `PanCam` components to work
 #[derive(Default)]
 pub struct PanCamPlugin;
 
@@ -82,10 +83,17 @@ fn camera_movement(
     *last_pos = Some(current_pos);
 }
 
+/// A component that adds panning camera controls to an orthographic camera
 #[derive(Component)]
 pub struct PanCam {
+    /// The mouse buttons that will be used to drag and pan the camera
     pub grab_buttons: Vec<MouseButton>,
+    /// Whether camera currently responds to user input
     pub enabled: bool,
+    /// When true, zooming the camera will center on the mouse cursor
+    ///
+    /// When false, the camera will stay in place, zooming towards the
+    /// middle of the screen
     pub zoom_to_cursor: bool,
 }
 
