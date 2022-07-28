@@ -12,7 +12,7 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     commands
-        .spawn_bundle(OrthographicCameraBundle::new_2d())
+        .spawn_bundle(Camera2dBundle::default())
         .insert(PanCam {
             // Set max scale in order to prevent the camera from zooming too far out
             max_scale: Some(40.),
