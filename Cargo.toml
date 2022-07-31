@@ -11,10 +11,10 @@ repository = "https://github.com/johanhelsing/bevy_pancam"
 version = "0.4.0"
 
 [dependencies]
-bevy = {git = "https://github.com/bevyengine/bevy", branch = "main", features = ["render"], default-features = false}
+bevy = {version = "0.8", features = ["render"], default-features = false}
 
 [dev-dependencies]
-bevy = {git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = [
+bevy = {version = "0.8", default-features = false, features = [
   "render",
   "bevy_asset",
   "bevy_winit",
