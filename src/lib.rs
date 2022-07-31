@@ -37,7 +37,7 @@ fn camera_zoom(
     let mouse_normalized_screen_pos =
         (window.cursor_position().unwrap() / window_size) * 2. - Vec2::ONE;
 
-    for (cam, mut proj, mut pos) in query.iter_mut() {
+    for (cam, mut proj, mut pos) in &mut query {
         if cam.enabled {
             let old_scale = proj.scale;
             proj.scale = (proj.scale * (1. + -scroll * 0.001)).max(cam.min_scale);
@@ -73,7 +73,7 @@ fn camera_movement(
     };
     let delta = current_pos - last_pos.unwrap_or(current_pos);
 
-    for (cam, mut transform, projection) in query.iter_mut() {
+    for (cam, mut transform, projection) in &mut query {
         if cam.enabled
             && cam
                 .grab_buttons
