@@ -50,6 +50,10 @@ commands.spawn_bundle(OrthographicCameraBundle::new_2d())
 
 See the [`simple`](./examples/simple.rs) and [`toggle`](./examples/toggle.rs) examples.
 
+## Cargo features
+
+- `bevy_egui` makes pancam cameras not react when the mouse or keyboard focus is on widgets created with [`bevy_egui`](https://github.com/mvlabat/bevy_egui)
+
 ## Bevy Version Support
 
 The `main` branch targets the latest bevy release.

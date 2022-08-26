@@ -18,7 +18,14 @@ fn camera_zoom(
     mut query: Query<(&PanCam, &mut OrthographicProjection, &mut Transform)>,
     mut scroll_events: EventReader<MouseWheel>,
     windows: Res<Windows>,
+    #[cfg(feature = "bevy_egui")] egui_ctx: Option<ResMut<bevy_egui::EguiContext>>,
 ) {
+    #[cfg(feature = "bevy_egui")]
+    if let Some(mut egui_ctx) = egui_ctx {
+        if egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input() {
+            return;
+        }
+    }
     let pixels_per_line = 100.; // Maybe make configurable?
     let scroll = scroll_events
         .iter()
@@ -66,7 +73,15 @@ fn camera_movement(
     mouse_buttons: Res<Input<MouseButton>>,
     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
+    #[cfg(feature = "bevy_egui")] egui_ctx: Option<ResMut<bevy_egui::EguiContext>>,
 ) {
+    #[cfg(feature = "bevy_egui")]
+    if let Some(mut egui_ctx) = egui_ctx {
+        if egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input() {
+            return;
+        }
+    }
+
     let window = windows.get_primary().unwrap();
 
     // Use position instead of MouseMotion, otherwise we don't get acceleration movement
