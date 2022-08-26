@@ -78,6 +78,7 @@ fn camera_movement(
     #[cfg(feature = "bevy_egui")]
     if let Some(mut egui_ctx) = egui_ctx {
         if egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input() {
+            *last_pos = None;
             return;
         }
     }
