@@ -21,6 +21,10 @@ fn egui_setup(mut egui_context: ResMut<EguiContext>) {
         .resizable(false)
         .show(egui_context.ctx_mut(), |ui| {
             ScrollArea::vertical().show(ui, |ui| {
+                ui.add_space(100.);
+                ui.color_edit_button_rgb(&mut [0., 0., 0.]);
+                ui.add(egui::Slider::new(&mut 0.0, 0.0..=1.0).step_by(0.001));
+                ui.checkbox(&mut true, "Test");
                 ui.vertical(|ui| {
                     for i in 0..50 {
                         ui.label(format!("list entry number {i}"));
