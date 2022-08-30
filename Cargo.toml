@@ -12,10 +12,12 @@ version = "0.6.1"
 
 [features]
 bevy_egui = ["dep:bevy_egui"]
+bevy-inspector-egui = ["dep:bevy-inspector-egui"]
 
 [dependencies]
 bevy = {version = "0.8", features = ["render"], default-features = false}
 bevy_egui = {version = "0.16", optional = true, default-features = false}
+bevy-inspector-egui = { version = "0.12", optional = true, default-features = false }
 
 [dev-dependencies]
 bevy = {version = "0.8", default-features = false, features = [
