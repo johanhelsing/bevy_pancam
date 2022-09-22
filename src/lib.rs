@@ -11,9 +11,14 @@ use bevy_inspector_egui::InspectableRegistry;
 #[derive(Default)]
 pub struct PanCamPlugin;
 
+/// Label to allow ordering of `PanCamPlugin`
+#[derive(SystemLabel)]
+pub struct PanCamSystemLabel;
+
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(camera_movement).add_system(camera_zoom);
+        app.add_system(camera_movement.label(PanCamSystemLabel))
+            .add_system(camera_zoom.label(PanCamSystemLabel));
 
         #[cfg(feature = "bevy-inspector-egui")]
         app.add_plugin(InspectablePlugin);
