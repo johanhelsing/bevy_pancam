@@ -63,14 +63,12 @@ fn camera_zoom(
 
             // If there is both a min and max x boundary, that limits how far we can zoom. Make sure we don't exceed that
             if let (Some(min_x_bound), Some(max_x_bound)) = (cam.min_x, cam.max_x) {
-                let max_safe_scale =
-                    max_scale_within_x_bounds(&min_x_bound, &max_x_bound, &window.width(), &proj);
+                let max_safe_scale = max_scale_within_x_bounds(min_x_bound, max_x_bound, &proj);
                 proj.scale = proj.scale.min(max_safe_scale);
             }
             // If there is both a min and max y boundary, that limits how far we can zoom. Make sure we don't exceed that
             if let (Some(min_y_bound), Some(max_y_bound)) = (cam.min_y, cam.max_y) {
-                let max_safe_scale =
-                    max_scale_within_y_bounds(&min_y_bound, &max_y_bound, &window.height(), &proj);
+                let max_safe_scale = max_scale_within_y_bounds(min_y_bound, max_y_bound, &proj);
                 proj.scale = proj.scale.min(max_safe_scale);
             }
 
@@ -120,74 +118,41 @@ fn camera_zoom(
 
 /// max_scale_within_x_bounds is used to find the maximum safe zoom out/projection scale when we have been provided with
 /// minimum and maximum x boundaries for the camera.
-///
-/// The maximum amount that we can zoom in or out is affected by both the default scaling between the
-/// window and the projection, and the clamped scaling enforced by the provided coordinate boundaries.
-/// The examples below aim to explain why we need to account for both, and what happens when we turn the
-/// various knobs
-///
-/// - In the simplest case where the width of the projection and window are both 100, and assuming we
-///   have an image that fills the default window.
-///     default_projection_scale = 1.
-///     - If max_width_between_boundaries = 100
-///         boundary_scale = 1.
-///         max_safe_x_scale = 1. * 1. = 1
-///         (Scrolling out this far shows the whole original image)
-///     - If max_width_between_boundaries = 50
-///         boundary_scale = 0.5
-///         max_safe_x_scale = 1. * 0.5 = 0.5
-///         (Scrolling out this far shows a quarter of the original image)
-///     - If max_width_between_boundaries = 200
-///         boundary_scale = 2.
-///         max_safe_x_scale = 2. * 1. = 2.
-///         (Scrolling out this far shows empty space around the original image)
-///        
-/// - If, instead, we have a square projection 100 wide, and a square window 200 wide, with an image
-///   200 wide filling the original window
-///     default_projection_scale = 0.5
-///     - If max_width_between_boundaries = 200
-///         boundary_scale = 1.
-///         max_safe_x_scale = 0.5 * 1. = 0.5
-///         (Scrolling out this far shows a quarter of the original image)
-///     - If max_width_between_boundaries = 400
-///         boundary_scale = 2.
-///         max_safe_x_scale = 0.5 * 2. = 1.
-///         (Scrolling out this far lets us scroll beyond the original window size, and see the whole image)
-///     - If max_width_between_boundaries = 800
-///         boundary_scale = 3.
-///         max_safe_x_scale = 0.5 * 3. = 1.5
-///         (Scrolling out this far lets us scroll beyond the original image and see empty space on either side)
 fn max_scale_within_x_bounds(
-    min_x_bound: &f32,
-    max_x_bound: &f32,
-    window_width: &f32,
+    min_x_bound: f32,
+    max_x_bound: f32,
     proj: &OrthographicProjection,
 ) -> f32 {
-    let projection_width = proj.right - proj.left;
-    let default_projection_scale = projection_width / window_width;
+    let bounds_width = max_x_bound - min_x_bound;
 
-    let max_width_between_boundaries = max_x_bound - min_x_bound;
-    let boundary_scale = max_width_between_boundaries / window_width;
+    // projection width in world space:
+    // let proj_width = (proj.right - proj.left) * proj.scale;
 
-    return default_projection_scale * boundary_scale;
+    // we're at the boundary when proj_width == bounds_width
+    // that means (proj.right - proj.left) * scale == bounds_width
+
+    // if we solve for scale, we get:
+    bounds_width / (proj.right - proj.left)
 }
 
 /// max_scale_within_y_bounds is used to find the maximum safe zoom out/projection scale when we have been provided with
 /// minimum and maximum y boundaries for the camera. It behaves identically to max_scale_within_x_bounds but uses the
 /// height of the window and projection instead of their width.
 fn max_scale_within_y_bounds(
-    min_y_bound: &f32,
-    max_y_bound: &f32,
-    window_height: &f32,
+    min_y_bound: f32,
+    max_y_bound: f32,
     proj: &OrthographicProjection,
 ) -> f32 {
-    let projection_height = proj.top - proj.bottom;
-    let default_projection_scale = projection_height / window_height;
+    let bounds_height = max_y_bound - min_y_bound;
 
-    let max_height_between_boundaries = max_y_bound - min_y_bound;
-    let boundary_scale = max_height_between_boundaries / window_height;
+    // projection height in world space:
+    // let proj_height = (proj.top - proj.bottom) * proj.scale;
 
-    return default_projection_scale * boundary_scale;
+    // we're at the boundary when proj_height == bounds_height
+    // that means (proj.top - proj.bottom) * scale == bounds_height
+
+    // if we solve for scale, we get:
+    bounds_height / (proj.top - proj.bottom)
 }
 
 fn camera_movement(
