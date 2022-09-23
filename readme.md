@@ -20,7 +20,7 @@ Behaves similarly to common online map applications:
 
 Add the plugin to your app
 
-```rust
+```rust ignore
 App::build()
     .add_plugins(DefaultPlugins)
     .add_plugin(PanCamPlugin::default());
@@ -28,7 +28,7 @@ App::build()
 
 Add the component to an orthographic camera:
 
-```rust
+```rust ignore
 commands.spawn_bundle(Camera2dBundle::default())
     .insert(PanCam::default());
 ```
@@ -37,7 +37,7 @@ This is enough to get going with sensible defaults.
 
 Alternatively, set the fields of the `PanCam` component to customize behavior:
 
-```rust
+```rust ignore
 commands.spawn_bundle(Camera2dBundle::default())
     .insert(PanCam {
         grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
