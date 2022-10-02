@@ -14,17 +14,19 @@ fn setup(mut commands: Commands) {
     commands
         .spawn_bundle(Camera2dBundle::default())
         .insert(PanCam {
-            // Set max scale in order to prevent the camera from zooming too far out
+            // prevent the camera from zooming too far out
             max_scale: Some(40.),
-            // Set min scale in order to prevent the camera from zooming too far in
+            // prevent the camera from zooming too far in
             min_scale: 0.5,
-            // Set min x boundary to prevent the camera from panning or zooming past it
+            // prevent the camera from panning or zooming past x -750. -750 was chosen to display both the edges of the
+            // sample image and some boundary space beyond it
             min_x: Some(-750.),
-            // Set max x boundary to prevent the camera from panning or zooming past it
+            // prevent the camera from panning or zooming past x 1750. 1750 was chosen to show an asymmetric boundary
+            // window with more space on the right than the left
             max_x: Some(1750.),
-            // Set min y boundary to prevent the camera from panning or zooming past it
+            // prevent the camera from panning or zooming past y -750. value chosen for same reason as above
             min_y: Some(-750.),
-            // Set max y boundary to prevent the camera from panning or zooming past it
+            // prevent the camera from panning or zooming past y 1750. value chosen for same reason as above
             max_y: Some(1750.),
             ..default()
         });
