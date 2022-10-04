@@ -64,10 +64,23 @@ fn camera_zoom(
             let old_scale = proj.scale;
             proj.scale = (proj.scale * (1. + -scroll * 0.001)).max(cam.min_scale);
 
+            // Apply max scale constraint
             if let Some(max_scale) = cam.max_scale {
                 proj.scale = proj.scale.min(max_scale);
             }
 
+            // If there is both a min and max x boundary, that limits how far we can zoom. Make sure we don't exceed that
+            if let (Some(min_x_bound), Some(max_x_bound)) = (cam.min_x, cam.max_x) {
+                let max_safe_scale = max_scale_within_x_bounds(min_x_bound, max_x_bound, &proj);
+                proj.scale = proj.scale.min(max_safe_scale);
+            }
+            // If there is both a min and max y boundary, that limits how far we can zoom. Make sure we don't exceed that
+            if let (Some(min_y_bound), Some(max_y_bound)) = (cam.min_y, cam.max_y) {
+                let max_safe_scale = max_scale_within_y_bounds(min_y_bound, max_y_bound, &proj);
+                proj.scale = proj.scale.min(max_safe_scale);
+            }
+
+            // Move the camera position to normalize the projection window
             if let (Some(mouse_normalized_screen_pos), true) =
                 (mouse_normalized_screen_pos, cam.zoom_to_cursor)
             {
@@ -77,9 +90,77 @@ fn camera_zoom(
                 pos.translation = (mouse_world_pos
                     - mouse_normalized_screen_pos * proj_size * proj.scale)
                     .extend(pos.translation.z);
+
+                // As we zoom out, we don't want the viewport to move beyond the provided boundary. If the most recent
+                // change to the camera zoom would move cause parts of the window beyond the boundary to be shown, we
+                // need to change the camera position to keep the viewport within bounds. The four if statements below
+                // provide this behavior for the min and max x and y boundaries.
+                let scaling = Vec2::new(
+                    window.width() / (proj.right - proj.left),
+                    window.height() / (proj.top - proj.bottom),
+                ) * proj.scale;
+                if let Some(min_x_bound) = cam.min_x {
+                    let half_of_viewport = (window.width() / 2.) * scaling.x;
+                    let min_safe_cam_x = min_x_bound + half_of_viewport;
+                    pos.translation.x = pos.translation.x.max(min_safe_cam_x);
+                }
+                if let Some(max_x_bound) = cam.max_x {
+                    let half_of_viewport = (window.width() / 2.) * scaling.x;
+                    let max_safe_cam_x = max_x_bound - half_of_viewport;
+                    pos.translation.x = pos.translation.x.min(max_safe_cam_x);
+                }
+                if let Some(min_y_bound) = cam.min_y {
+                    let half_of_viewport = (window.height() / 2.) * scaling.y;
+                    let min_safe_cam_y = min_y_bound + half_of_viewport;
+                    pos.translation.y = pos.translation.y.max(min_safe_cam_y);
+                }
+                if let Some(max_y_bound) = cam.max_y {
+                    let half_of_viewport = (window.height() / 2.) * scaling.y;
+                    let max_safe_cam_y = max_y_bound - half_of_viewport;
+                    pos.translation.y = pos.translation.y.min(max_safe_cam_y);
+                }
             }
         }
     }
+}
+
+/// max_scale_within_x_bounds is used to find the maximum safe zoom out/projection scale when we have been provided with
+/// minimum and maximum x boundaries for the camera.
+fn max_scale_within_x_bounds(
+    min_x_bound: f32,
+    max_x_bound: f32,
+    proj: &OrthographicProjection,
+) -> f32 {
+    let bounds_width = max_x_bound - min_x_bound;
+
+    // projection width in world space:
+    // let proj_width = (proj.right - proj.left) * proj.scale;
+
+    // we're at the boundary when proj_width == bounds_width
+    // that means (proj.right - proj.left) * scale == bounds_width
+
+    // if we solve for scale, we get:
+    bounds_width / (proj.right - proj.left)
+}
+
+/// max_scale_within_y_bounds is used to find the maximum safe zoom out/projection scale when we have been provided with
+/// minimum and maximum y boundaries for the camera. It behaves identically to max_scale_within_x_bounds but uses the
+/// height of the window and projection instead of their width.
+fn max_scale_within_y_bounds(
+    min_y_bound: f32,
+    max_y_bound: f32,
+    proj: &OrthographicProjection,
+) -> f32 {
+    let bounds_height = max_y_bound - min_y_bound;
+
+    // projection height in world space:
+    // let proj_height = (proj.top - proj.bottom) * proj.scale;
+
+    // we're at the boundary when proj_height == bounds_height
+    // that means (proj.top - proj.bottom) * scale == bounds_height
+
+    // if we solve for scale, we get:
+    bounds_height / (proj.top - proj.bottom)
 }
 
 fn camera_movement(
@@ -118,7 +199,29 @@ fn camera_movement(
                 window.height() / (projection.top - projection.bottom),
             ) * projection.scale;
 
-            transform.translation -= (delta * scaling).extend(0.);
+            // The proposed new camera position
+            let mut proposed_cam_transform = transform.translation - (delta * scaling).extend(0.);
+
+            // Check whether the proposed camera movement would be within the provided boundaries, override it if we
+            // need to do so to stay within bounds.
+            if let Some(min_x_boundary) = cam.min_x {
+                let min_safe_cam_x = min_x_boundary + ((window.width() / 2.) * scaling.x);
+                proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
+            }
+            if let Some(max_x_boundary) = cam.max_x {
+                let max_safe_cam_x = max_x_boundary - ((window.width() / 2.) * scaling.x);
+                proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
+            }
+            if let Some(min_y_boundary) = cam.min_y {
+                let min_safe_cam_y = min_y_boundary + ((window.height() / 2.) * scaling.y);
+                proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
+            }
+            if let Some(max_y_boundary) = cam.max_y {
+                let max_safe_cam_y = max_y_boundary - ((window.height() / 2.) * scaling.y);
+                proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
+            }
+
+            transform.translation = proposed_cam_transform;
         }
     }
     *last_pos = Some(current_pos);
@@ -150,6 +253,26 @@ pub struct PanCam {
     /// If present, the orthographic projection's scale will be clamped at
     /// this value when zooming out.
     pub max_scale: Option<f32>,
+    /// The minimum x position of the camera window
+    ///
+    /// If present, the orthographic projection will be clamped to this boundary both
+    /// when dragging the window, and zooming out.
+    pub min_x: Option<f32>,
+    /// The maximum x position of the camera window
+    ///
+    /// If present, the orthographic projection will be clamped to this boundary both
+    /// when dragging the window, and zooming out.
+    pub max_x: Option<f32>,
+    /// The minimum y position of the camera window
+    ///
+    /// If present, the orthographic projection will be clamped to this boundary both
+    /// when dragging the window, and zooming out.
+    pub min_y: Option<f32>,
+    /// The maximum y position of the camera window
+    ///
+    /// If present, the orthographic projection will be clamped to this boundary both
+    /// when dragging the window, and zooming out.
+    pub max_y: Option<f32>,
 }
 
 impl Default for PanCam {
@@ -160,6 +283,10 @@ impl Default for PanCam {
             zoom_to_cursor: true,
             min_scale: 0.00001,
             max_scale: None,
+            min_x: None,
+            max_x: None,
+            min_y: None,
+            max_y: None,
         }
     }
 }
@@ -176,5 +303,68 @@ impl Plugin for InspectablePlugin {
             .get_resource_or_insert_with(InspectableRegistry::default);
 
         inspectable_registry.register::<PanCam>();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use bevy::prelude::OrthographicProjection;
+
+    use super::*;
+
+    // Simple mock function to construct a square projection window and run it, plus some square boundaries, through
+    // the provided scale func
+    fn mock_scale_func(
+        proj_size: f32,
+        bound_width: f32,
+        scale_func: &dyn Fn(f32, f32, &OrthographicProjection) -> f32,
+    ) -> f32 {
+        let proj = OrthographicProjection {
+            left: -(proj_size / 2.),
+            bottom: -(proj_size / 2.),
+            right: (proj_size / 2.),
+            top: (proj_size / 2.),
+            ..Default::default()
+        };
+        let min_bound = -(bound_width / 2.);
+        let max_bound = bound_width / 2.;
+
+        return scale_func(min_bound, max_bound, &proj);
+    }
+
+    // projection and bounds are equal-width, both have symmetric edges. Expect max scale of 1.0
+    #[test]
+    fn test_max_scale_x_01() {
+        assert_eq!(mock_scale_func(100., 100., &max_scale_within_x_bounds), 1.);
+    }
+
+    // boundaries are 1/2 the size of the projection window, expects max scale of 0.5
+    #[test]
+    fn test_max_scale_x_02() {
+        assert_eq!(mock_scale_func(100., 50., &max_scale_within_x_bounds), 0.5);
+    }
+
+    // boundaries are 2x the size of the projection window, expects max scale of 2.0
+    #[test]
+    fn test_max_scale_x_03() {
+        assert_eq!(mock_scale_func(100., 200., &max_scale_within_x_bounds), 2.);
+    }
+
+    // projection and bounds are equal-height, expects max scale of 1.0
+    #[test]
+    fn test_max_scale_y_01() {
+        assert_eq!(mock_scale_func(100., 100., &max_scale_within_y_bounds), 1.);
+    }
+
+    // boundaries are 1/2 the size of the projection window, expects max scale of 0.5
+    #[test]
+    fn test_max_scale_y_02() {
+        assert_eq!(mock_scale_func(100., 50., &max_scale_within_y_bounds), 0.5);
+    }
+
+    // boundaries are 2x the size of the projection window, expects max scale of 2.0
+    #[test]
+    fn test_max_scale_y_03() {
+        assert_eq!(mock_scale_func(100., 200., &max_scale_within_y_bounds), 2.);
     }
 }
