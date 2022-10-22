@@ -337,7 +337,7 @@ mod tests {
         let min_bound = -(bound_width / 2.);
         let max_bound = bound_width / 2.;
 
-        return scale_func(min_bound, max_bound, &proj);
+        scale_func(min_bound, max_bound, &proj)
     }
 
     // projection and bounds are equal-width, both have symmetric edges. Expect max scale of 1.0
