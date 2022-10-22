@@ -185,7 +185,7 @@ fn camera_movement(
         Some(current_pos) => current_pos,
         None => return,
     };
-    let delta = current_pos - last_pos.unwrap_or(current_pos);
+    let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
     for (cam, mut transform, projection) in &mut query {
         if cam.enabled
@@ -194,30 +194,35 @@ fn camera_movement(
                 .iter()
                 .any(|btn| mouse_buttons.pressed(*btn))
         {
-            let scaling = Vec2::new(
-                window.width() / (projection.right - projection.left),
-                window.height() / (projection.top - projection.bottom),
+            let world_units_per_device_pixel = Vec2::new(
+                (projection.right - projection.left) / window.width(),
+                (projection.top - projection.bottom) / window.height(),
             ) * projection.scale;
 
             // The proposed new camera position
-            let mut proposed_cam_transform = transform.translation - (delta * scaling).extend(0.);
+            let delta_world = delta_device_pixels * world_units_per_device_pixel;
+            let mut proposed_cam_transform = transform.translation - delta_world.extend(0.);
 
             // Check whether the proposed camera movement would be within the provided boundaries, override it if we
             // need to do so to stay within bounds.
             if let Some(min_x_boundary) = cam.min_x {
-                let min_safe_cam_x = min_x_boundary + ((window.width() / 2.) * scaling.x);
+                let min_safe_cam_x =
+                    min_x_boundary + ((window.width() / 2.) * world_units_per_device_pixel.x);
                 proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
             }
             if let Some(max_x_boundary) = cam.max_x {
-                let max_safe_cam_x = max_x_boundary - ((window.width() / 2.) * scaling.x);
+                let max_safe_cam_x =
+                    max_x_boundary - ((window.width() / 2.) * world_units_per_device_pixel.x);
                 proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
             }
             if let Some(min_y_boundary) = cam.min_y {
-                let min_safe_cam_y = min_y_boundary + ((window.height() / 2.) * scaling.y);
+                let min_safe_cam_y =
+                    min_y_boundary + ((window.height() / 2.) * world_units_per_device_pixel.y);
                 proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
             }
             if let Some(max_y_boundary) = cam.max_y {
-                let max_safe_cam_y = max_y_boundary - ((window.height() / 2.) * scaling.y);
+                let max_safe_cam_y =
+                    max_y_boundary - ((window.height() / 2.) * world_units_per_device_pixel.y);
                 proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
             }
 
