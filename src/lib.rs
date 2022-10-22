@@ -325,7 +325,7 @@ mod tests {
             bottom: -(proj_size / 2.),
             right: (proj_size / 2.),
             top: (proj_size / 2.),
-            ..Default::default()
+            ..default()
         };
         let min_bound = -(bound_width / 2.);
         let max_bound = bound_width / 2.;
