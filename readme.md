@@ -21,9 +21,10 @@ Behaves similarly to common online map applications:
 Add the plugin to your app
 
 ```rust ignore
-App::build()
+App::new()
     .add_plugins(DefaultPlugins)
-    .add_plugin(PanCamPlugin::default());
+    .add_plugin(PanCamPlugin::default())
+    .run();
 ```
 
 Add the component to an orthographic camera:
