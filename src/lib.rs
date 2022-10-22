@@ -95,28 +95,25 @@ fn camera_zoom(
                 // change to the camera zoom would move cause parts of the window beyond the boundary to be shown, we
                 // need to change the camera position to keep the viewport within bounds. The four if statements below
                 // provide this behavior for the min and max x and y boundaries.
-                let scaling = Vec2::new(
-                    window.width() / (proj.right - proj.left),
-                    window.height() / (proj.top - proj.bottom),
-                ) * proj.scale;
+                let proj_size =
+                    Vec2::new(proj.right - proj.left, proj.top - proj.bottom) * proj.scale;
+
+                let half_of_viewport = proj_size / 2.;
+
                 if let Some(min_x_bound) = cam.min_x {
-                    let half_of_viewport = (window.width() / 2.) * scaling.x;
-                    let min_safe_cam_x = min_x_bound + half_of_viewport;
+                    let min_safe_cam_x = min_x_bound + half_of_viewport.x;
                     pos.translation.x = pos.translation.x.max(min_safe_cam_x);
                 }
                 if let Some(max_x_bound) = cam.max_x {
-                    let half_of_viewport = (window.width() / 2.) * scaling.x;
-                    let max_safe_cam_x = max_x_bound - half_of_viewport;
+                    let max_safe_cam_x = max_x_bound - half_of_viewport.x;
                     pos.translation.x = pos.translation.x.min(max_safe_cam_x);
                 }
                 if let Some(min_y_bound) = cam.min_y {
-                    let half_of_viewport = (window.height() / 2.) * scaling.y;
-                    let min_safe_cam_y = min_y_bound + half_of_viewport;
+                    let min_safe_cam_y = min_y_bound + half_of_viewport.y;
                     pos.translation.y = pos.translation.y.max(min_safe_cam_y);
                 }
                 if let Some(max_y_bound) = cam.max_y {
-                    let half_of_viewport = (window.height() / 2.) * scaling.y;
-                    let max_safe_cam_y = max_y_bound - half_of_viewport;
+                    let max_safe_cam_y = max_y_bound - half_of_viewport.y;
                     pos.translation.y = pos.translation.y.min(max_safe_cam_y);
                 }
             }
