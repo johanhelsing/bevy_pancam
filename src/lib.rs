@@ -206,23 +206,19 @@ fn camera_movement(
             // Check whether the proposed camera movement would be within the provided boundaries, override it if we
             // need to do so to stay within bounds.
             if let Some(min_x_boundary) = cam.min_x {
-                let min_safe_cam_x =
-                    min_x_boundary + window_size.x / 2. * world_units_per_device_pixel.x;
+                let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
                 proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
             }
             if let Some(max_x_boundary) = cam.max_x {
-                let max_safe_cam_x =
-                    max_x_boundary - window_size.x / 2. * world_units_per_device_pixel.x;
+                let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
                 proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
             }
             if let Some(min_y_boundary) = cam.min_y {
-                let min_safe_cam_y =
-                    min_y_boundary + window_size.y / 2. * world_units_per_device_pixel.y;
+                let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
                 proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
             }
             if let Some(max_y_boundary) = cam.max_y {
-                let max_safe_cam_y =
-                    max_y_boundary - window_size.y / 2. * world_units_per_device_pixel.y;
+                let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
                 proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
             }
 
