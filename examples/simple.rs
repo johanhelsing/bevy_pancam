@@ -12,7 +12,7 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     commands
-        .spawn_bundle(Camera2dBundle::default())
+        .spawn(Camera2dBundle::default())
         .insert(PanCam::default());
 
     let n = 20;
@@ -24,7 +24,7 @@ fn setup(mut commands: Commands) {
             let x = x as f32 * spacing - offset;
             let y = y as f32 * spacing - offset;
             let color = Color::hsl(240., random::<f32>() * 0.3, random::<f32>() * 0.3);
-            commands.spawn_bundle(SpriteBundle {
+            commands.spawn(SpriteBundle {
                 sprite: Sprite {
                     color,
                     custom_size,

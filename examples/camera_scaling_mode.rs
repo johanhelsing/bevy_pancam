@@ -14,7 +14,7 @@ fn setup(mut commands: Commands) {
     let mut cam = Camera2dBundle::default();
     cam.projection.scaling_mode = ScalingMode::FixedVertical(10.0);
 
-    commands.spawn_bundle(cam).insert(PanCam {
+    commands.spawn(cam).insert(PanCam {
         min_x: Some(-10.),
         max_x: Some(10.),
         min_y: Some(-10.),
@@ -31,7 +31,7 @@ fn setup(mut commands: Commands) {
             let x = x as f32 * spacing + offset;
             let y = y as f32 * spacing + offset;
             let color = Color::hsl(240., random::<f32>() * 0.3, random::<f32>() * 0.3);
-            commands.spawn_bundle(SpriteBundle {
+            commands.spawn(SpriteBundle {
                 sprite: Sprite {
                     color,
                     custom_size,

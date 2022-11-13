@@ -30,7 +30,7 @@ App::new()
 Add the component to an orthographic camera:
 
 ```rust ignore
-commands.spawn_bundle(Camera2dBundle::default())
+commands.spawn(Camera2dBundle::default())
     .insert(PanCam::default());
 ```
 
@@ -39,7 +39,7 @@ This is enough to get going with sensible defaults.
 Alternatively, set the fields of the `PanCam` component to customize behavior:
 
 ```rust ignore
-commands.spawn_bundle(Camera2dBundle::default())
+commands.spawn(Camera2dBundle::default())
     .insert(PanCam {
         grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
         enabled: true, // when false, controls are disabled. See toggle example.
