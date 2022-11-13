@@ -11,13 +11,16 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default()).insert(PanCam {
-        // Set max scale in order to prevent the camera from zooming too far out
-        max_scale: Some(40.),
-        // Set min scale in order to prevent the camera from zooming too far in
-        min_scale: 1.,
-        ..default()
-    });
+    commands.spawn((
+        Camera2dBundle::default(),
+        PanCam {
+            // Set max scale in order to prevent the camera from zooming too far out
+            max_scale: Some(40.),
+            // Set min scale in order to prevent the camera from zooming too far in
+            min_scale: 1.,
+            ..default()
+        },
+    ));
 
     let n = 20;
     let spacing = 50.;

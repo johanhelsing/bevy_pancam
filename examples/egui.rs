@@ -35,9 +35,7 @@ fn egui_setup(mut egui_context: ResMut<EguiContext>) {
 }
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn(Camera2dBundle::default())
-        .insert(PanCam::default());
+    commands.spawn((Camera2dBundle::default(), PanCam::default()));
 
     let n = 20;
     let spacing = 50.;

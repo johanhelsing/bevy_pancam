@@ -14,13 +14,16 @@ fn setup(mut commands: Commands) {
     let mut cam = Camera2dBundle::default();
     cam.projection.scaling_mode = ScalingMode::FixedVertical(10.0);
 
-    commands.spawn(cam).insert(PanCam {
-        min_x: Some(-10.),
-        max_x: Some(10.),
-        min_y: Some(-10.),
-        max_y: Some(10.0),
-        ..default()
-    });
+    commands.spawn((
+        cam,
+        PanCam {
+            min_x: Some(-10.),
+            max_x: Some(10.),
+            min_y: Some(-10.),
+            max_y: Some(10.0),
+            ..default()
+        },
+    ));
 
     let n = 20;
     let spacing = 1.;

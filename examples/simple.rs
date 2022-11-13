@@ -11,9 +11,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn(Camera2dBundle::default())
-        .insert(PanCam::default());
+    commands.spawn((Camera2dBundle::default(), PanCam::default()));
 
     let n = 20;
     let spacing = 50.;
