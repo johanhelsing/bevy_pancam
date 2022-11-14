@@ -11,9 +11,9 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn_bundle(Camera2dBundle::default())
-        .insert(PanCam {
+    commands.spawn((
+        Camera2dBundle::default(),
+        PanCam {
             // prevent the camera from zooming too far out
             max_scale: Some(40.),
             // prevent the camera from zooming too far in
@@ -29,7 +29,8 @@ fn setup(mut commands: Commands) {
             // prevent the camera from panning or zooming past y 1750. value chosen for same reason as above
             max_y: Some(1750.),
             ..default()
-        });
+        },
+    ));
 
     let n = 20;
     let spacing = 50.;
@@ -40,7 +41,7 @@ fn setup(mut commands: Commands) {
             let x = x as f32 * spacing - offset;
             let y = y as f32 * spacing - offset;
             let color = Color::hsl(240., random::<f32>() * 0.3, random::<f32>() * 0.3);
-            commands.spawn_bundle(SpriteBundle {
+            commands.spawn(SpriteBundle {
                 sprite: Sprite {
                     color,
                     custom_size,
