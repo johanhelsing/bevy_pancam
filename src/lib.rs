@@ -20,8 +20,7 @@ impl Plugin for PanCamPlugin {
         app.add_system(camera_movement.label(PanCamSystemLabel))
             .add_system(camera_zoom.label(PanCamSystemLabel));
 
-        #[cfg(feature = "bevy-inspector-egui")]
-        app.add_plugin(InspectablePlugin);
+        app.register_type::<PanCam>();
     }
 }
 
@@ -286,16 +285,6 @@ impl Default for PanCam {
             min_y: None,
             max_y: None,
         }
-    }
-}
-
-#[cfg(feature = "bevy-inspector-egui")]
-struct InspectablePlugin;
-
-#[cfg(feature = "bevy-inspector-egui")]
-impl Plugin for InspectablePlugin {
-    fn build(&self, app: &mut App) {
-        app.register_type::<PanCam>();
     }
 }
 
