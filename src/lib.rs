@@ -226,10 +226,6 @@ fn camera_movement(
 
 /// A component that adds panning camera controls to an orthographic camera
 #[derive(Component, Reflect)]
-#[cfg_attr(
-    feature = "bevy-inspector-egui",
-    derive(bevy_inspector_egui::InspectorOptions)
-)]
 #[reflect(Component)]
 pub struct PanCam {
     /// The mouse buttons that will be used to drag and pan the camera
