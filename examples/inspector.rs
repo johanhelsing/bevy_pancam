@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{widgets::InspectorQuery, InspectorPlugin};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_pancam::{PanCam, PanCamPlugin};
 use rand::random;
 
@@ -7,7 +7,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(PanCamPlugin::default())
-        .add_plugin(InspectorPlugin::<InspectorQuery<&'static mut PanCam>>::new())
+        .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup)
         .run();
 }

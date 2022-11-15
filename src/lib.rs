@@ -7,9 +7,6 @@ use bevy::{
     render::camera::OrthographicProjection,
 };
 
-#[cfg(feature = "bevy-inspector-egui")]
-use bevy_inspector_egui::InspectableRegistry;
-
 /// Plugin that adds the necessary systems for `PanCam` components to work
 #[derive(Default)]
 pub struct PanCamPlugin;
@@ -229,14 +226,14 @@ fn camera_movement(
 }
 
 /// A component that adds panning camera controls to an orthographic camera
-#[derive(Component)]
+#[derive(Component, Reflect)]
 #[cfg_attr(
     feature = "bevy-inspector-egui",
-    derive(bevy_inspector_egui::Inspectable)
+    derive(bevy_inspector_egui::InspectorOptions)
 )]
+#[reflect(Component)]
 pub struct PanCam {
     /// The mouse buttons that will be used to drag and pan the camera
-    #[cfg_attr(feature = "bevy-inspector-egui", inspectable(ignore))]
     pub grab_buttons: Vec<MouseButton>,
     /// Whether camera currently responds to user input
     pub enabled: bool,
@@ -293,17 +290,12 @@ impl Default for PanCam {
 }
 
 #[cfg(feature = "bevy-inspector-egui")]
-#[derive(bevy_inspector_egui::Inspectable)]
 struct InspectablePlugin;
 
 #[cfg(feature = "bevy-inspector-egui")]
 impl Plugin for InspectablePlugin {
     fn build(&self, app: &mut App) {
-        let mut inspectable_registry = app
-            .world
-            .get_resource_or_insert_with(InspectableRegistry::default);
-
-        inspectable_registry.register::<PanCam>();
+        app.register_type::<PanCam>();
     }
 }
 
