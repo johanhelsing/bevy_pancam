@@ -15,7 +15,7 @@ bevy_egui = ["dep:bevy_egui"]
 
 [dependencies]
 bevy = {version = "0.9", features = ["render"], default-features = false}
-bevy_egui = {version = "0.18", optional = true, default-features = false}
+bevy_egui = {version = "0.19", optional = true, default-features = false}
 
 [dev-dependencies]
 bevy = {version = "0.9", default-features = false, features = [
@@ -25,8 +25,8 @@ bevy = {version = "0.9", default-features = false, features = [
   "x11", # github actions runners don't have libxkbcommon installed, so can't use wayland
 ]}
 rand = "0.8"
-bevy_egui = {version = "0.18", default-features = false, features = ["default_fonts"]}
-bevy-inspector-egui = {version = "0.15", default-features = false}
+bevy_egui = {version = "0.19", default-features = false, features = ["default_fonts"]}
+bevy-inspector-egui = {version = "0.17", default-features = false}
 
 [[example]]
 name = "egui"
