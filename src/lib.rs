@@ -3,7 +3,9 @@
 
 use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
+    math::vec2,
     prelude::*,
+    render::camera::CameraProjection,
     window::PrimaryWindow,
 };
 
@@ -67,13 +69,22 @@ fn camera_zoom(
 
             // If there is both a min and max x boundary, that limits how far we can zoom. Make sure we don't exceed that
             if let (Some(min_x_bound), Some(max_x_bound)) = (cam.min_x, cam.max_x) {
-                let max_safe_scale = max_scale_within_x_bounds(min_x_bound, max_x_bound, &proj);
-                proj.scale = proj.scale.min(max_safe_scale);
+                let max_safe_scale = max_scale_within_bounds(
+                    vec2(max_x_bound - min_x_bound, f32::INFINITY),
+                    &proj,
+                    window_size,
+                );
+                proj.scale = proj.scale.min(max_safe_scale.x);
             }
+
             // If there is both a min and max y boundary, that limits how far we can zoom. Make sure we don't exceed that
             if let (Some(min_y_bound), Some(max_y_bound)) = (cam.min_y, cam.max_y) {
-                let max_safe_scale = max_scale_within_y_bounds(min_y_bound, max_y_bound, &proj);
-                proj.scale = proj.scale.min(max_safe_scale);
+                let max_safe_scale = max_scale_within_bounds(
+                    vec2(f32::INFINITY, max_y_bound - min_y_bound),
+                    &proj,
+                    window_size,
+                );
+                proj.scale = proj.scale.min(max_safe_scale.y);
             }
 
             // Move the camera position to normalize the projection window
@@ -116,43 +127,19 @@ fn camera_zoom(
     }
 }
 
-/// max_scale_within_x_bounds is used to find the maximum safe zoom out/projection scale when we have been provided with
-/// minimum and maximum x boundaries for the camera.
-fn max_scale_within_x_bounds(
-    min_x_bound: f32,
-    max_x_bound: f32,
+/// max_scale_within_bounds is used to find the maximum safe zoom out/projection
+/// scale when we have been provided with minimum and maximum x boundaries for
+/// the camera.
+fn max_scale_within_bounds(
+    bounds_size: Vec2,
     proj: &OrthographicProjection,
-) -> f32 {
-    let bounds_width = max_x_bound - min_x_bound;
-
-    // projection width in world space:
-    // let proj_width = proj.area.width() * proj.scale;
-
-    // we're at the boundary when proj_width == bounds_width
-    // that means proj.area.width() * scale == bounds_width
-
-    // if we solve for scale, we get:
-    bounds_width / proj.area.width()
-}
-
-/// max_scale_within_y_bounds is used to find the maximum safe zoom out/projection scale when we have been provided with
-/// minimum and maximum y boundaries for the camera. It behaves identically to max_scale_within_x_bounds but uses the
-/// height of the window and projection instead of their width.
-fn max_scale_within_y_bounds(
-    min_y_bound: f32,
-    max_y_bound: f32,
-    proj: &OrthographicProjection,
-) -> f32 {
-    let bounds_height = max_y_bound - min_y_bound;
-
-    // projection height in world space:
-    // let proj_height = proj.area.height() * proj.scale;
-
-    // we're at the boundary when proj_height == bounds_height
-    // that means proj.area.height() * scale == bounds_height
-
-    // if we solve for scale, we get:
-    bounds_height / proj.area.height()
+    window_size: Vec2, //viewport?
+) -> Vec2 {
+    let mut p = proj.clone();
+    p.scale = 1.;
+    p.update(window_size.x, window_size.y);
+    let base_world_size = p.area.size();
+    bounds_size / base_world_size
 }
 
 fn camera_movement(
@@ -187,7 +174,7 @@ fn camera_movement(
                 .iter()
                 .any(|btn| mouse_buttons.pressed(*btn))
         {
-            let proj_size = projection.area.size() * projection.scale;
+            let proj_size = projection.area.size();
 
             let world_units_per_device_pixel = proj_size / window_size;
 
