@@ -80,7 +80,7 @@ fn camera_zoom(
             if let (Some(mouse_normalized_screen_pos), true) =
                 (mouse_normalized_screen_pos, cam.zoom_to_cursor)
             {
-                let proj_size = proj.area.max;
+                let proj_size = proj.area.max / old_scale;
                 let mouse_world_pos = pos.translation.truncate()
                     + mouse_normalized_screen_pos * proj_size * old_scale;
                 pos.translation = (mouse_world_pos
@@ -91,7 +91,7 @@ fn camera_zoom(
                 // change to the camera zoom would move cause parts of the window beyond the boundary to be shown, we
                 // need to change the camera position to keep the viewport within bounds. The four if statements below
                 // provide this behavior for the min and max x and y boundaries.
-                let proj_size = proj.area.size() * proj.scale;
+                let proj_size = proj.area.size();
 
                 let half_of_viewport = proj_size / 2.;
 
