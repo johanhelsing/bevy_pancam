@@ -11,14 +11,14 @@ use bevy::{
 #[derive(Default)]
 pub struct PanCamPlugin;
 
-/// Label to allow ordering of `PanCamPlugin`
+/// System set to allow ordering of `PanCamPlugin`
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
-pub struct PanCamSystemLabel;
+pub struct PanCamSystemSet;
 
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(camera_movement.in_set(PanCamSystemLabel))
-            .add_system(camera_zoom.in_set(PanCamSystemLabel));
+        app.add_system(camera_movement.in_set(PanCamSystemSet))
+            .add_system(camera_zoom.in_set(PanCamSystemSet));
 
         app.register_type::<PanCam>();
     }
