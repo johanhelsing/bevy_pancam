@@ -4,7 +4,7 @@
 use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
     prelude::*,
-    render::camera::OrthographicProjection,
+    window::PrimaryWindow,
 };
 
 /// Plugin that adds the necessary systems for `PanCam` components to work
@@ -12,13 +12,13 @@ use bevy::{
 pub struct PanCamPlugin;
 
 /// Label to allow ordering of `PanCamPlugin`
-#[derive(SystemLabel)]
+#[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
 pub struct PanCamSystemLabel;
 
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(camera_movement.label(PanCamSystemLabel))
-            .add_system(camera_zoom.label(PanCamSystemLabel));
+        app.add_system(camera_movement.in_set(PanCamSystemLabel))
+            .add_system(camera_zoom.in_set(PanCamSystemLabel));
 
         app.register_type::<PanCam>();
     }
@@ -27,7 +27,7 @@ impl Plugin for PanCamPlugin {
 fn camera_zoom(
     mut query: Query<(&PanCam, &mut OrthographicProjection, &mut Transform)>,
     mut scroll_events: EventReader<MouseWheel>,
-    windows: Res<Windows>,
+    primary_window: Query<&Window, With<PrimaryWindow>>,
     #[cfg(feature = "bevy_egui")] egui_ctx: Option<ResMut<bevy_egui::EguiContext>>,
 ) {
     #[cfg(feature = "bevy_egui")]
@@ -49,7 +49,7 @@ fn camera_zoom(
         return;
     }
 
-    let window = windows.get_primary().unwrap();
+    let window = primary_window.single();
     let window_size = Vec2::new(window.width(), window.height());
     let mouse_normalized_screen_pos = window
         .cursor_position()
@@ -80,7 +80,7 @@ fn camera_zoom(
             if let (Some(mouse_normalized_screen_pos), true) =
                 (mouse_normalized_screen_pos, cam.zoom_to_cursor)
             {
-                let proj_size = Vec2::new(proj.right, proj.top);
+                let proj_size = proj.area.max;
                 let mouse_world_pos = pos.translation.truncate()
                     + mouse_normalized_screen_pos * proj_size * old_scale;
                 pos.translation = (mouse_world_pos
@@ -91,8 +91,7 @@ fn camera_zoom(
                 // change to the camera zoom would move cause parts of the window beyond the boundary to be shown, we
                 // need to change the camera position to keep the viewport within bounds. The four if statements below
                 // provide this behavior for the min and max x and y boundaries.
-                let proj_size =
-                    Vec2::new(proj.right - proj.left, proj.top - proj.bottom) * proj.scale;
+                let proj_size = proj.area.size() * proj.scale;
 
                 let half_of_viewport = proj_size / 2.;
 
@@ -127,13 +126,13 @@ fn max_scale_within_x_bounds(
     let bounds_width = max_x_bound - min_x_bound;
 
     // projection width in world space:
-    // let proj_width = (proj.right - proj.left) * proj.scale;
+    // let proj_width = proj.area.width() * proj.scale;
 
     // we're at the boundary when proj_width == bounds_width
-    // that means (proj.right - proj.left) * scale == bounds_width
+    // that means proj.area.width() * scale == bounds_width
 
     // if we solve for scale, we get:
-    bounds_width / (proj.right - proj.left)
+    bounds_width / proj.area.width()
 }
 
 /// max_scale_within_y_bounds is used to find the maximum safe zoom out/projection scale when we have been provided with
@@ -147,17 +146,17 @@ fn max_scale_within_y_bounds(
     let bounds_height = max_y_bound - min_y_bound;
 
     // projection height in world space:
-    // let proj_height = (proj.top - proj.bottom) * proj.scale;
+    // let proj_height = proj.area.height() * proj.scale;
 
     // we're at the boundary when proj_height == bounds_height
-    // that means (proj.top - proj.bottom) * scale == bounds_height
+    // that means proj.area.height() * scale == bounds_height
 
     // if we solve for scale, we get:
-    bounds_height / (proj.top - proj.bottom)
+    bounds_height / proj.area.height()
 }
 
 fn camera_movement(
-    windows: Res<Windows>,
+    primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<Input<MouseButton>>,
     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
@@ -171,7 +170,7 @@ fn camera_movement(
         }
     }
 
-    let window = windows.get_primary().unwrap();
+    let window = primary_window.single();
     let window_size = Vec2::new(window.width(), window.height());
 
     // Use position instead of MouseMotion, otherwise we don't get acceleration movement
@@ -188,10 +187,7 @@ fn camera_movement(
                 .iter()
                 .any(|btn| mouse_buttons.pressed(*btn))
         {
-            let proj_size = Vec2::new(
-                projection.right - projection.left,
-                projection.top - projection.bottom,
-            ) * projection.scale;
+            let proj_size = projection.area.size() * projection.scale;
 
             let world_units_per_device_pixel = proj_size / window_size;
 
@@ -298,10 +294,7 @@ mod tests {
         scale_func: &dyn Fn(f32, f32, &OrthographicProjection) -> f32,
     ) -> f32 {
         let proj = OrthographicProjection {
-            left: -(proj_size / 2.),
-            bottom: -(proj_size / 2.),
-            right: (proj_size / 2.),
-            top: (proj_size / 2.),
+            area: Rect::from_center_size(Vec2::ZERO, Vec2::splat(proj_size)),
             ..default()
         };
         let min_bound = -(bound_width / 2.);

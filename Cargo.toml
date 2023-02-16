@@ -14,20 +14,27 @@ version = "0.7.0"
 bevy_egui = ["dep:bevy_egui"]
 
 [dependencies]
-bevy = {version = "0.9", features = ["render"], default-features = false}
+bevy = {git = "https://github.com/bevyengine/bevy", features = ["bevy_render"], default-features = false}
+# bevy = {version = "0.9", features = ["bevy_render"], default-features = false}
 bevy_egui = {version = "0.19", optional = true, default-features = false}
 
 [dev-dependencies]
-bevy = {version = "0.9", default-features = false, features = [
-  "render",
+# bevy = {version = "0.9", default-features = false, features = [
+bevy = {git = "https://github.com/bevyengine/bevy", default-features = false, features = [
+  "bevy_render",
   "bevy_asset",
+  "bevy_sprite",
   "bevy_winit",
+  "bevy_core_pipeline",
   "x11", # github actions runners don't have libxkbcommon installed, so can't use wayland
 ]}
-rand = "0.8"
-bevy_egui = {version = "0.19", default-features = false, features = ["default_fonts"]}
 bevy-inspector-egui = {version = "0.17", default-features = false}
+bevy_egui = {version = "0.19", default-features = false, features = ["default_fonts"]}
+rand = "0.8"
 
 [[example]]
 name = "egui"
 required-features = ["bevy_egui"]
+
+[patch.crates-io]
+bevy = {git = "https://github.com/bevyengine/bevy" }
