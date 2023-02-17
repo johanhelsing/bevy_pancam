@@ -280,60 +280,80 @@ impl Default for PanCam {
 
 #[cfg(test)]
 mod tests {
+    use std::f32::INFINITY;
+
     use bevy::prelude::OrthographicProjection;
 
     use super::*;
 
-    // Simple mock function to construct a square projection window and run it, plus some square boundaries, through
-    // the provided scale func
-    fn mock_scale_func(
-        proj_size: f32,
-        bound_width: f32,
-        scale_func: &dyn Fn(f32, f32, &OrthographicProjection) -> f32,
-    ) -> f32 {
-        let proj = OrthographicProjection {
-            area: Rect::from_center_size(Vec2::ZERO, Vec2::splat(proj_size)),
-            ..default()
-        };
-        let min_bound = -(bound_width / 2.);
-        let max_bound = bound_width / 2.;
-
-        scale_func(min_bound, max_bound, &proj)
+    /// Simple mock function to construct a square projection from a window size
+    fn mock_proj(window_size: Vec2) -> OrthographicProjection {
+        let mut proj = Camera2dBundle::default().projection;
+        proj.update(window_size.x, window_size.y);
+        proj
     }
 
-    // projection and bounds are equal-width, both have symmetric edges. Expect max scale of 1.0
     #[test]
-    fn test_max_scale_x_01() {
-        assert_eq!(mock_scale_func(100., 100., &max_scale_within_x_bounds), 1.);
+    fn bounds_matching_window_width_have_max_scale_1() {
+        let window_size = vec2(100., 100.);
+        let proj = mock_proj(window_size);
+        assert_eq!(
+            max_scale_within_bounds(vec2(100., INFINITY), &proj, window_size).x,
+            1.
+        );
     }
 
-    // boundaries are 1/2 the size of the projection window, expects max scale of 0.5
+    // boundaries are 1/2 the size of the projection window
     #[test]
-    fn test_max_scale_x_02() {
-        assert_eq!(mock_scale_func(100., 50., &max_scale_within_x_bounds), 0.5);
+    fn bounds_half_of_window_width_have_half_max_scale() {
+        let window_size = vec2(100., 100.);
+        let proj = mock_proj(window_size);
+        assert_eq!(
+            max_scale_within_bounds(vec2(50., INFINITY), &proj, window_size).x,
+            0.5
+        );
     }
 
-    // boundaries are 2x the size of the projection window, expects max scale of 2.0
+    // boundaries are 2x the size of the projection window
     #[test]
-    fn test_max_scale_x_03() {
-        assert_eq!(mock_scale_func(100., 200., &max_scale_within_x_bounds), 2.);
+    fn bounds_twice_of_window_width_have_max_scale_2() {
+        let window_size = vec2(100., 100.);
+        let proj = mock_proj(window_size);
+        assert_eq!(
+            max_scale_within_bounds(vec2(200., INFINITY), &proj, window_size).x,
+            2.
+        );
     }
 
-    // projection and bounds are equal-height, expects max scale of 1.0
     #[test]
-    fn test_max_scale_y_01() {
-        assert_eq!(mock_scale_func(100., 100., &max_scale_within_y_bounds), 1.);
+    fn bounds_matching_window_height_have_max_scale_1() {
+        let window_size = vec2(100., 100.);
+        let proj = mock_proj(window_size);
+        assert_eq!(
+            max_scale_within_bounds(vec2(INFINITY, 100.), &proj, window_size).y,
+            1.
+        );
     }
 
-    // boundaries are 1/2 the size of the projection window, expects max scale of 0.5
+    // boundaries are 1/2 the size of the projection window
     #[test]
-    fn test_max_scale_y_02() {
-        assert_eq!(mock_scale_func(100., 50., &max_scale_within_y_bounds), 0.5);
+    fn bounds_half_of_window_height_have_half_max_scale() {
+        let window_size = vec2(100., 100.);
+        let proj = mock_proj(window_size);
+        assert_eq!(
+            max_scale_within_bounds(vec2(INFINITY, 50.), &proj, window_size).y,
+            0.5
+        );
     }
 
-    // boundaries are 2x the size of the projection window, expects max scale of 2.0
+    // boundaries are 2x the size of the projection window
     #[test]
-    fn test_max_scale_y_03() {
-        assert_eq!(mock_scale_func(100., 200., &max_scale_within_y_bounds), 2.);
+    fn bounds_twice_of_window_height_have_max_scale_2() {
+        let window_size = vec2(100., 100.);
+        let proj = mock_proj(window_size);
+        assert_eq!(
+            max_scale_within_bounds(vec2(INFINITY, 200.), &proj, window_size).y,
+            2.
+        );
     }
 }
