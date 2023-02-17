@@ -67,24 +67,35 @@ fn camera_zoom(
                 proj.scale = proj.scale.min(max_scale);
             }
 
-            // If there is both a min and max x boundary, that limits how far we can zoom. Make sure we don't exceed that
-            if let (Some(min_x_bound), Some(max_x_bound)) = (cam.min_x, cam.max_x) {
-                let max_safe_scale = max_scale_within_bounds(
-                    vec2(max_x_bound - min_x_bound, f32::INFINITY),
-                    &proj,
-                    window_size,
-                );
-                proj.scale = proj.scale.min(max_safe_scale.x);
-            }
+            // If there is both a min and max boundary, that limits how far we can zoom. Make sure we don't exceed that
+            let scale_constrained = BVec2::new(
+                cam.min_x.is_some() && cam.max_x.is_some(),
+                cam.min_y.is_some() && cam.max_y.is_some(),
+            );
 
-            // If there is both a min and max y boundary, that limits how far we can zoom. Make sure we don't exceed that
-            if let (Some(min_y_bound), Some(max_y_bound)) = (cam.min_y, cam.max_y) {
-                let max_safe_scale = max_scale_within_bounds(
-                    vec2(f32::INFINITY, max_y_bound - min_y_bound),
-                    &proj,
-                    window_size,
-                );
-                proj.scale = proj.scale.min(max_safe_scale.y);
+            if scale_constrained.x || scale_constrained.y {
+                let bounds_width = if let (Some(min_x), Some(max_x)) = (cam.min_x, cam.max_x) {
+                    max_x - min_x
+                } else {
+                    f32::INFINITY
+                };
+
+                let bounds_height = if let (Some(min_y), Some(max_y)) = (cam.min_y, cam.max_y) {
+                    max_y - min_y
+                } else {
+                    f32::INFINITY
+                };
+
+                let bounds_size = vec2(bounds_width, bounds_height);
+                let max_safe_scale = max_scale_within_bounds(bounds_size, &proj, window_size);
+
+                if scale_constrained.x {
+                    proj.scale = proj.scale.min(max_safe_scale.x);
+                }
+
+                if scale_constrained.y {
+                    proj.scale = proj.scale.min(max_safe_scale.y);
+                }
             }
 
             // Move the camera position to normalize the projection window
