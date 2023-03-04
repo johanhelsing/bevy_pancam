@@ -19,10 +19,8 @@ pub struct PanCamSystemSet;
 
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(camera_movement.in_set(PanCamSystemSet))
-            .add_system(camera_zoom.in_set(PanCamSystemSet));
-
-        app.register_type::<PanCam>();
+        app.add_systems((camera_movement, camera_zoom).in_set(PanCamSystemSet))
+            .register_type::<PanCam>();
     }
 }
 
