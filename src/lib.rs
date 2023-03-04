@@ -21,21 +21,27 @@ impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems((camera_movement, camera_zoom).in_set(PanCamSystemSet))
             .register_type::<PanCam>();
+
+        #[cfg(feature = "bevy_egui")]
+        app.configure_set(PanCamSystemSet.run_if(not(egui_wants_focus)));
     }
+}
+
+#[cfg(feature = "bevy_egui")]
+fn egui_wants_focus(egui_ctx: Option<ResMut<bevy_egui::EguiContext>>) -> bool {
+    if let Some(mut egui_ctx) = egui_ctx {
+        if egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input() {
+            return true;
+        }
+    }
+    false
 }
 
 fn camera_zoom(
     mut query: Query<(&PanCam, &mut OrthographicProjection, &mut Transform)>,
     mut scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
-    #[cfg(feature = "bevy_egui")] egui_ctx: Option<ResMut<bevy_egui::EguiContext>>,
 ) {
-    #[cfg(feature = "bevy_egui")]
-    if let Some(mut egui_ctx) = egui_ctx {
-        if egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input() {
-            return;
-        }
-    }
     let pixels_per_line = 100.; // Maybe make configurable?
     let scroll = scroll_events
         .iter()
@@ -156,16 +162,7 @@ fn camera_movement(
     mouse_buttons: Res<Input<MouseButton>>,
     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
-    #[cfg(feature = "bevy_egui")] egui_ctx: Option<ResMut<bevy_egui::EguiContext>>,
 ) {
-    #[cfg(feature = "bevy_egui")]
-    if let Some(mut egui_ctx) = egui_ctx {
-        if egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input() {
-            *last_pos = None;
-            return;
-        }
-    }
-
     let window = primary_window.single();
     let window_size = Vec2::new(window.width(), window.height());
 
