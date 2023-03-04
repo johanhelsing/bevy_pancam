@@ -71,7 +71,12 @@ I intend to support the `main` branch of Bevy in the `bevy-main` branch.
 
 ## License
 
-MIT or Apache-2.0
+`bevy_pancam` is dual-licensed under either
+
+- MIT License (./LICENSE-MIT or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0 (./LICENSE-APACHE or http://www.apache.org/licenses/LICENSE-2.0)
+
+at your option.
 
 ## Contributions
 
