@@ -30,11 +30,10 @@ impl Plugin for PanCamPlugin {
 #[cfg(feature = "bevy_egui")]
 fn egui_wants_focus(egui_ctx: Option<ResMut<bevy_egui::EguiContext>>) -> bool {
     if let Some(mut egui_ctx) = egui_ctx {
-        if egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input() {
-            return true;
-        }
+        egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input()
+    } else {
+        false
     }
-    false
 }
 
 fn camera_zoom(
