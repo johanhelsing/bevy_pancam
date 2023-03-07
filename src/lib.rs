@@ -23,17 +23,32 @@ impl Plugin for PanCamPlugin {
             .register_type::<PanCam>();
 
         #[cfg(feature = "bevy_egui")]
-        app.configure_set(PanCamSystemSet.run_if(not(egui_wants_focus)));
+        {
+            app.init_resource::<EguiWantsFocus>()
+                .add_system(check_egui_wants_focus.before(PanCamSystemSet))
+                .configure_set(PanCamSystemSet.run_if(resource_equals(EguiWantsFocus(false))));
+        }
     }
 }
 
+#[derive(Resource, Deref, DerefMut, PartialEq, Eq, Default)]
 #[cfg(feature = "bevy_egui")]
-fn egui_wants_focus(egui_ctx: Option<ResMut<bevy_egui::EguiContext>>) -> bool {
-    if let Some(mut egui_ctx) = egui_ctx {
-        egui_ctx.ctx_mut().wants_pointer_input() || egui_ctx.ctx_mut().wants_keyboard_input()
+struct EguiWantsFocus(bool);
+
+// todo: make run condition when Bevy supports mutable resources in them
+#[cfg(feature = "bevy_egui")]
+fn check_egui_wants_focus(
+    egui_ctx: Option<ResMut<bevy_egui::EguiContext>>,
+    primary_window: Query<Entity, With<PrimaryWindow>>,
+    mut wants_focus: ResMut<EguiWantsFocus>,
+) {
+    let new_wants_focus = if let Some(mut egui_ctx) = egui_ctx {
+        let ctx = egui_ctx.ctx_for_window_mut(primary_window.single());
+        ctx.wants_pointer_input() || ctx.wants_keyboard_input()
     } else {
         false
-    }
+    };
+    wants_focus.set_if_neq(EguiWantsFocus(new_wants_focus));
 }
 
 fn camera_zoom(
