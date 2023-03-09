@@ -38,12 +38,12 @@ struct EguiWantsFocus(bool);
 // todo: make run condition when Bevy supports mutable resources in them
 #[cfg(feature = "bevy_egui")]
 fn check_egui_wants_focus(
-    egui_ctx: Option<ResMut<bevy_egui::EguiContext>>,
-    primary_window: Query<Entity, With<PrimaryWindow>>,
+    mut contexts: Query<&mut bevy_egui::EguiContext>,
     mut wants_focus: ResMut<EguiWantsFocus>,
 ) {
-    let new_wants_focus = if let Some(mut egui_ctx) = egui_ctx {
-        let ctx = egui_ctx.ctx_for_window_mut(primary_window.single());
+    let ctx = contexts.iter_mut().next();
+    let new_wants_focus = if let Some(ctx) = ctx {
+        let ctx = ctx.into_inner().get_mut();
         ctx.wants_pointer_input() || ctx.wants_keyboard_input()
     } else {
         false
