@@ -237,10 +237,10 @@ fn camera_movement(
 
     for (cam, mut transform, projection) in &mut query {
         if cam.enabled
-            && (cam
+            && cam
                 .grab_buttons
                 .iter()
-                .any(|btn| mouse_buttons.pressed(*btn)))
+                .any(|btn| mouse_buttons.pressed(*btn))
         {
             clamp_translation(
                 cam,
@@ -313,7 +313,6 @@ impl Default for PanCam {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
