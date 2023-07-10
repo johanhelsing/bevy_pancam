@@ -22,8 +22,7 @@ Add the plugin to your app
 
 ```rust ignore
 App::new()
-    .add_plugins(DefaultPlugins)
-    .add_plugin(PanCamPlugin::default())
+    .add_plugins((DefaultPlugins, PanCamPlugin::default()))
     .run();
 ```
 

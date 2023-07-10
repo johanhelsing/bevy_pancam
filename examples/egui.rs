@@ -8,11 +8,9 @@ use rand::random;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(PanCamPlugin::default())
-        .add_plugin(EguiPlugin)
-        .add_system(egui_setup)
-        .add_startup_system(setup)
+        .add_plugins((DefaultPlugins, PanCamPlugin::default(), EguiPlugin))
+        .add_systems(Update, egui_setup)
+        .add_systems(Startup, setup)
         .run();
 }
 

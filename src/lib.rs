@@ -19,14 +19,20 @@ pub struct PanCamSystemSet;
 
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems((camera_movement, camera_zoom).in_set(PanCamSystemSet))
-            .register_type::<PanCam>();
+        app.add_systems(
+            Update,
+            (camera_movement, camera_zoom).in_set(PanCamSystemSet),
+        )
+        .register_type::<PanCam>();
 
         #[cfg(feature = "bevy_egui")]
         {
             app.init_resource::<EguiWantsFocus>()
-                .add_system(check_egui_wants_focus.before(PanCamSystemSet))
-                .configure_set(PanCamSystemSet.run_if(resource_equals(EguiWantsFocus(false))));
+                .add_systems(Update, check_egui_wants_focus.before(PanCamSystemSet))
+                .configure_set(
+                    Update,
+                    PanCamSystemSet.run_if(resource_equals(EguiWantsFocus(false))),
+                );
         }
     }
 }
@@ -73,7 +79,8 @@ fn camera_zoom(
     let window_size = Vec2::new(window.width(), window.height());
     let mouse_normalized_screen_pos = window
         .cursor_position()
-        .map(|cursor_pos| (cursor_pos / window_size) * 2. - Vec2::ONE);
+        .map(|cursor_pos| (cursor_pos / window_size) * 2. - Vec2::ONE)
+        .map(|p| Vec2::new(p.x, -p.y));
 
     for (cam, mut proj, mut pos) in &mut query {
         if cam.enabled {
@@ -182,7 +189,7 @@ fn camera_movement(
 
     // Use position instead of MouseMotion, otherwise we don't get acceleration movement
     let current_pos = match window.cursor_position() {
-        Some(current_pos) => current_pos,
+        Some(c) => Vec2::new(c.x, -c.y),
         None => return,
     };
     let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
