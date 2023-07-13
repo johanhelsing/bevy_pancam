@@ -22,8 +22,7 @@ Add the plugin to your app
 
 ```rust ignore
 App::new()
-    .add_plugins(DefaultPlugins)
-    .add_plugin(PanCamPlugin::default())
+    .add_plugins((DefaultPlugins, PanCamPlugin::default()))
     .run();
 ```
 
@@ -63,7 +62,8 @@ I intend to support the `main` branch of Bevy in the `bevy-main` branch.
 
 |bevy|bevy_pancam|
 |----|-----------|
-|0.10|0.8, main  |
+|0.11|0.9, main  |
+|0.10|0.8        |
 |0.9 |0.7,       |
 |0.8 |0.5, 0.6   |
 |0.7 |0.3, 0.4   |
