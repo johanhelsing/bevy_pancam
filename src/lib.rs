@@ -28,7 +28,7 @@ impl Plugin for PanCamPlugin {
         #[cfg(feature = "bevy_egui")]
         {
             app.init_resource::<EguiWantsFocus>()
-                .add_systems(Update, check_egui_wants_focus.before(PanCamSystemSet))
+                .add_systems(PostUpdate, check_egui_wants_focus)
                 .configure_set(
                     Update,
                     PanCamSystemSet.run_if(resource_equals(EguiWantsFocus(false))),
