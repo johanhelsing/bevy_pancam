@@ -9,12 +9,12 @@ use rand::random;
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PanCamPlugin::default(), EguiPlugin))
-        .add_systems(Update, egui_setup)
+        .add_systems(Update, egui_ui)
         .add_systems(Startup, setup)
         .run();
 }
 
-fn egui_setup(mut contexts: EguiContexts) {
+fn egui_ui(mut contexts: EguiContexts) {
     egui::Window::new("Scroll me")
         .resizable(false)
         .show(contexts.ctx_mut(), |ui| {
