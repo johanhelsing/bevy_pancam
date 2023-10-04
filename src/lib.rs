@@ -3,6 +3,7 @@
 
 use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
+    log::Level,
     math::vec2,
     prelude::*,
     render::camera::CameraProjection,
@@ -179,10 +180,16 @@ fn max_scale_within_bounds(
 }
 
 fn camera_movement(
+    mut commands: Commands,
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<Input<MouseButton>>,
-    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
-    mut last_pos: Local<Option<Vec2>>,
+    mut query: Query<(
+        Entity,
+        &PanCam,
+        Option<&mut PanCamMoving>,
+        &mut Transform,
+        &OrthographicProjection,
+    )>,
 ) {
     let window = primary_window.single();
     let window_size = Vec2::new(window.width(), window.height());
@@ -192,15 +199,27 @@ fn camera_movement(
         Some(c) => Vec2::new(c.x, -c.y),
         None => return,
     };
-    let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
-    for (cam, mut transform, projection) in &mut query {
-        if cam.enabled
-            && cam
+    for (entity, cam, pancam_moving, mut transform, projection) in &mut query {
+        if !cam.enabled
+            || !cam
                 .grab_buttons
                 .iter()
                 .any(|btn| mouse_buttons.pressed(*btn))
         {
+            if pancam_moving.is_some() {
+                commands.entity(entity).remove::<PanCamMoving>();
+                bevy::utils::tracing::event!(Level::INFO, "stops moving");
+            }
+            continue;
+        }
+        if let Some(mut pancam_moving) = pancam_moving {
+            bevy::utils::tracing::event!(Level::INFO, "moving!");
+            let delta_device_pixels = current_pos - pancam_moving.last_cursor_pos;
+
+            *pancam_moving = PanCamMoving {
+                last_cursor_pos: current_pos,
+            };
             let proj_size = projection.area.size();
 
             let world_units_per_device_pixel = proj_size / window_size;
@@ -229,9 +248,22 @@ fn camera_movement(
             }
 
             transform.translation = proposed_cam_transform;
-        }
+        } else {
+            bevy::utils::tracing::event!(Level::INFO, "might move soon.");
+            commands.entity(entity).insert(PanCamMoving {
+                last_cursor_pos: current_pos,
+            });
+        };
     }
-    *last_pos = Some(current_pos);
+}
+
+/// A component to track moving state and avoid immediate movement on first frame.<br />
+/// We want to avoid moving on first frame to allow other systems to disable the pancam if necessary.
+#[derive(Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct PanCamMoving {
+    /// Last known cursor position, used to determine move offset.
+    pub last_cursor_pos: Vec2,
 }
 
 /// A component that adds panning camera controls to an orthographic camera
