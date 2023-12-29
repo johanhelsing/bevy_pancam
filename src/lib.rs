@@ -199,7 +199,7 @@ fn camera_movement(
             && cam
                 .grab_buttons
                 .iter()
-                .any(|btn| mouse_buttons.pressed(*btn))
+                .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
         {
             let proj_size = projection.area.size();
 
