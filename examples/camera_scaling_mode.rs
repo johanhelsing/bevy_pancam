@@ -4,7 +4,7 @@ use rand::prelude::random;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PanCamPlugin::default()))
+        .add_plugins((DefaultPlugins, PanCamPlugin))
         .add_systems(Startup, setup)
         .run();
 }
