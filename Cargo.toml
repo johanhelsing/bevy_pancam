@@ -10,23 +10,29 @@ repository = "https://github.com/johanhelsing/bevy_pancam"
 version = "0.11.1"
 
 [features]
+default = []
 bevy_egui = ["dep:bevy_egui"]
+leafwing-input-manager = ["dep:leafwing-input-manager"]
 
 [dependencies]
-bevy = {version = "0.13", features = ["bevy_render"], default-features = false}
-bevy_egui = {version = "0.25", optional = true, default-features = false}
+bevy = { version = "0.13", features = [
+    "bevy_render",
+], default-features = false }
+bevy_egui = { version = "0.25", optional = true, default-features = false }
+leafwing-input-manager = { version = "0.11.1", optional = true }
 
 [dev-dependencies]
-bevy = {version = "0.13", default-features = false, features = [
-  "bevy_render",
-  "bevy_asset",
-  "bevy_sprite",
-  "bevy_winit",
-  "bevy_core_pipeline",
-  "x11", # github actions runners don't have libxkbcommon installed, so can't use wayland
-]}
+bevy = { version = "0.13", default-features = false, features = [
+    "bevy_render",
+    "bevy_asset",
+    "bevy_sprite",
+    "bevy_winit",
+    "bevy_core_pipeline",
+] }
 bevy-inspector-egui = { version = "0.23", default-features = false }
-bevy_egui = {version = "0.25", default-features = false, features = ["default_fonts"]}
+bevy_egui = { version = "0.25", default-features = false, features = [
+    "default_fonts",
+] }
 rand = "0.8"
 
 [[example]]
@@ -36,3 +42,7 @@ required-features = ["bevy_egui"]
 [[example]]
 name = "inspector"
 required-features = ["bevy_egui"]
+
+[[example]]
+name = "leafwing"
+required-features = ["leafwing-input-manager"]

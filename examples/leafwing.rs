@@ -1,17 +1,39 @@
 use bevy::prelude::*;
-use bevy_pancam::{PanCam, PanCamPlugin};
+use bevy_pancam::{PanCam, PanCamAction, PanCamPlugin};
+use leafwing_input_manager::{
+    action_state::ActionState,
+    axislike::SingleAxis,
+    input_map::InputMap,
+    user_input::{InputKind, Modifier},
+    InputManagerBundle,
+};
 use rand::prelude::random;
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PanCamPlugin))
         .add_systems(Startup, setup)
-        .add_systems(Update, toggle_key)
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera2dBundle::default(), PanCam::default()));
+    let mut input_map = InputMap::default();
+    input_map.insert_chord(
+        [
+            InputKind::Modifier(Modifier::Alt),
+            InputKind::Mouse(MouseButton::Left),
+        ],
+        PanCamAction::Grab,
+    );
+    input_map.insert(SingleAxis::mouse_wheel_y(), PanCamAction::Zoom);
+    commands.spawn((
+        Camera2dBundle::default(),
+        PanCam::default(),
+        InputManagerBundle::<PanCamAction> {
+            action_state: ActionState::default(),
+            input_map,
+        },
+    ));
 
     let n = 20;
     let spacing = 50.;
@@ -31,21 +53,6 @@ fn setup(mut commands: Commands) {
                 transform: Transform::from_xyz(x, y, 0.),
                 ..default()
             });
-        }
-    }
-}
-
-fn toggle_key(mut query: Query<&mut PanCam>, keys: Res<ButtonInput<KeyCode>>) {
-    // Space = Toggle Panning
-    if keys.just_pressed(KeyCode::Space) {
-        for mut pancam in &mut query {
-            pancam.enabled = !pancam.enabled;
-        }
-    }
-    // T = Toggle Zoom to Cursor
-    if keys.just_pressed(KeyCode::KeyT) {
-        for mut pancam in &mut query {
-            pancam.zoom_to_cursor = !pancam.zoom_to_cursor;
         }
     }
 }
