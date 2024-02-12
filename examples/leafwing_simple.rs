@@ -1,12 +1,5 @@
 use bevy::prelude::*;
-use bevy_pancam::{PanCam, PanCamAction, PanCamPlugin};
-use leafwing_input_manager::{
-    action_state::ActionState,
-    axislike::SingleAxis,
-    input_map::InputMap,
-    user_input::{InputKind, Modifier},
-    InputManagerBundle,
-};
+use bevy_pancam::{PanCamBundle, PanCamPlugin};
 use rand::prelude::random;
 
 fn main() {
@@ -17,23 +10,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    let mut input_map = InputMap::default();
-    input_map.insert_chord(
-        [
-            InputKind::Modifier(Modifier::Alt),
-            InputKind::Mouse(MouseButton::Left),
-        ],
-        PanCamAction::Grab,
-    );
-    input_map.insert(SingleAxis::mouse_wheel_y(), PanCamAction::Zoom);
-    commands.spawn((
-        Camera2dBundle::default(),
-        PanCam::default(),
-        InputManagerBundle::<PanCamAction> {
-            action_state: ActionState::default(),
-            input_map,
-        },
-    ));
+    commands.spawn((Camera2dBundle::default(), PanCamBundle::default()));
 
     let n = 20;
     let spacing = 50.;
