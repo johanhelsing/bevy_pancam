@@ -3,7 +3,7 @@ use bevy_egui::{
     egui::{self, ScrollArea},
     EguiContexts, EguiPlugin,
 };
-use bevy_pancam::{PanCam, PanCamPlugin};
+use bevy_pancam::{PanCamBundle, PanCamPlugin};
 use rand::random;
 
 fn main() {
@@ -33,7 +33,7 @@ fn egui_ui(mut contexts: EguiContexts) {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera2dBundle::default(), PanCam::default()));
+    commands.spawn((Camera2dBundle::default(), PanCamBundle::default()));
 
     let n = 20;
     let spacing = 50.;

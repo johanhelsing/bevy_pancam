@@ -44,5 +44,9 @@ name = "inspector"
 required-features = ["bevy_egui"]
 
 [[example]]
-name = "leafwing"
+name = "leafwing_simple"
+required-features = ["leafwing-input-manager"]
+
+[[example]]
+name = "leafwing_custom"
 required-features = ["leafwing-input-manager"]
