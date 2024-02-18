@@ -180,7 +180,7 @@ fn max_scale_within_bounds(
 
 fn camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
-    mouse_buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
 ) {
