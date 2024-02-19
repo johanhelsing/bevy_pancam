@@ -24,13 +24,13 @@ fn setup(mut commands: Commands) {
                 action_state: ActionState::default(),
                 input_map: InputMap::default()
                     .insert_chord(
+                        PanCamAction::Grab,
                         [
                             InputKind::Modifier(Modifier::Alt),
                             InputKind::Mouse(MouseButton::Left),
                         ],
-                        PanCamAction::Grab,
                     )
-                    .insert(SingleAxis::mouse_wheel_y(), PanCamAction::Zoom)
+                    .insert(PanCamAction::Zoom, SingleAxis::mouse_wheel_y())
                     .build(),
             },
             ..default()

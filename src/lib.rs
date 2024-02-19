@@ -85,7 +85,7 @@ fn camera_zoom(
 
     #[cfg(feature = "leafwing-input-manager")]
     let scroll = if let Ok(action_state) = action_query.get_single() {
-        action_state.value(PanCamAction::Zoom)
+        action_state.value(&PanCamAction::Zoom)
     } else {
         0.
     };
@@ -209,7 +209,7 @@ fn check_leafwing_interaction(query: &Query<&ActionState<PanCamAction>>) -> bool
     let Ok(action_state) = query.get_single() else {
         return false;
     };
-    action_state.pressed(PanCamAction::Grab) && !action_state.just_pressed(PanCamAction::Grab)
+    action_state.pressed(&PanCamAction::Grab) && !action_state.just_pressed(&PanCamAction::Grab)
 }
 
 fn camera_movement(
@@ -334,11 +334,11 @@ impl Default for PanCamBundle {
                 action_state: ActionState::default(),
                 input_map: InputMap::default()
                     .insert_multiple([
-                        (MouseButton::Left, PanCamAction::Grab),
-                        (MouseButton::Middle, PanCamAction::Grab),
-                        (MouseButton::Right, PanCamAction::Grab),
+                        (PanCamAction::Grab, MouseButton::Left),
+                        (PanCamAction::Grab, MouseButton::Middle),
+                        (PanCamAction::Grab, MouseButton::Right),
                     ])
-                    .insert(SingleAxis::mouse_wheel_y(), PanCamAction::Zoom)
+                    .insert(PanCamAction::Zoom, SingleAxis::mouse_wheel_y())
                     .build(),
             },
             #[cfg(not(feature = "leafwing-input-manager"))]
