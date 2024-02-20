@@ -29,7 +29,7 @@ impl Plugin for PanCamPlugin {
         {
             app.init_resource::<EguiWantsFocus>()
                 .add_systems(PostUpdate, check_egui_wants_focus)
-                .configure_set(
+                .configure_sets(
                     Update,
                     PanCamSystemSet.run_if(resource_equals(EguiWantsFocus(false))),
                 );
