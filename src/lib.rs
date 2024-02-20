@@ -29,7 +29,7 @@ impl Plugin for PanCamPlugin {
         {
             app.init_resource::<EguiWantsFocus>()
                 .add_systems(PostUpdate, check_egui_wants_focus)
-                .configure_set(
+                .configure_sets(
                     Update,
                     PanCamSystemSet.run_if(resource_equals(EguiWantsFocus(false))),
                 );
@@ -180,7 +180,7 @@ fn max_scale_within_bounds(
 
 fn camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
-    mouse_buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
 ) {
