@@ -35,7 +35,7 @@ fn setup(mut commands: Commands) {
     }
 }
 
-fn toggle_key(mut query: Query<&mut PanCam>, keys: Res<Input<KeyCode>>) {
+fn toggle_key(mut query: Query<&mut PanCam>, keys: Res<ButtonInput<KeyCode>>) {
     // Space = Toggle Panning
     if keys.just_pressed(KeyCode::Space) {
         for mut pancam in &mut query {
@@ -43,7 +43,7 @@ fn toggle_key(mut query: Query<&mut PanCam>, keys: Res<Input<KeyCode>>) {
         }
     }
     // T = Toggle Zoom to Cursor
-    if keys.just_pressed(KeyCode::T) {
+    if keys.just_pressed(KeyCode::KeyT) {
         for mut pancam in &mut query {
             pancam.zoom_to_cursor = !pancam.zoom_to_cursor;
         }
