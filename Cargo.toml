@@ -33,3 +33,7 @@ rand = "0.8"
 [[example]]
 name = "egui"
 required-features = ["bevy_egui"]
+
+[[example]]
+name = "inspector"
+required-features = ["bevy_egui"]
