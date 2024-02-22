@@ -57,8 +57,50 @@ fn check_egui_wants_focus(
     wants_focus.set_if_neq(EguiWantsFocus(new_wants_focus));
 }
 
+fn clamp_translation(
+    cam: &PanCam,
+    projection: &OrthographicProjection,
+    transform: &mut Transform,
+    delta_device_pixels: Vec2,
+    window_size: Vec2,
+) {
+    let proj_size = projection.area.size();
+
+    let world_units_per_device_pixel = proj_size / window_size;
+
+    // The proposed new camera position
+    let delta_world = delta_device_pixels * world_units_per_device_pixel;
+    let mut proposed_cam_transform = transform.translation - delta_world.extend(0.);
+
+    // Check whether the proposed camera movement would be within the provided boundaries, override it if we
+    // need to do so to stay within bounds.
+    if let Some(min_x_boundary) = cam.min_x {
+        let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
+        proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
+    }
+    if let Some(max_x_boundary) = cam.max_x {
+        let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
+        proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
+    }
+    if let Some(min_y_boundary) = cam.min_y {
+        let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
+        proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
+    }
+    if let Some(max_y_boundary) = cam.max_y {
+        let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
+        proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
+    }
+
+    transform.translation = proposed_cam_transform;
+}
+
 fn camera_zoom(
-    mut query: Query<(&PanCam, &mut OrthographicProjection, &mut Transform)>,
+    mut query: Query<(
+        &PanCam,
+        &mut OrthographicProjection,
+        &mut Transform,
+        &mut Camera,
+    )>,
     mut scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
@@ -82,7 +124,7 @@ fn camera_zoom(
         .map(|cursor_pos| (cursor_pos / window_size) * 2. - Vec2::ONE)
         .map(|p| Vec2::new(p.x, -p.y));
 
-    for (cam, mut proj, mut pos) in &mut query {
+    for (cam, mut proj, mut pos, camera) in &mut query {
         if cam.enabled {
             let old_scale = proj.scale;
             proj.scale = (proj.scale * (1. + -scroll * 0.001)).max(cam.min_scale);
@@ -159,6 +201,12 @@ fn camera_zoom(
                     pos.translation.y = pos.translation.y.min(max_safe_cam_y);
                 }
             }
+
+            if let Some(size) = camera.logical_viewport_size() {
+                proj.update(size.x, size.y);
+            }
+
+            clamp_translation(cam, &mut proj, &mut pos, Vec2::default(), window_size);
         }
     }
 }
@@ -201,34 +249,13 @@ fn camera_movement(
                 .iter()
                 .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
         {
-            let proj_size = projection.area.size();
-
-            let world_units_per_device_pixel = proj_size / window_size;
-
-            // The proposed new camera position
-            let delta_world = delta_device_pixels * world_units_per_device_pixel;
-            let mut proposed_cam_transform = transform.translation - delta_world.extend(0.);
-
-            // Check whether the proposed camera movement would be within the provided boundaries, override it if we
-            // need to do so to stay within bounds.
-            if let Some(min_x_boundary) = cam.min_x {
-                let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
-                proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
-            }
-            if let Some(max_x_boundary) = cam.max_x {
-                let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
-                proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
-            }
-            if let Some(min_y_boundary) = cam.min_y {
-                let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
-                proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
-            }
-            if let Some(max_y_boundary) = cam.max_y {
-                let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
-                proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
-            }
-
-            transform.translation = proposed_cam_transform;
+            clamp_translation(
+                cam,
+                projection,
+                &mut transform,
+                delta_device_pixels,
+                window_size,
+            );
         }
     }
     *last_pos = Some(current_pos);
