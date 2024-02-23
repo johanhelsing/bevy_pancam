@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_pancam::{PanCam, PanCamPlugin};
+use bevy_pancam::{PanCamBundle, PanCamPlugin};
 use rand::random;
 
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            PanCamPlugin::default(),
+            PanCamPlugin,
             WorldInspectorPlugin::default(),
         ))
         .add_systems(Startup, setup)
@@ -15,7 +15,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera2dBundle::default(), PanCam::default()));
+    commands.spawn((Camera2dBundle::default(), PanCamBundle::default()));
 
     let n = 20;
     let spacing = 50.;

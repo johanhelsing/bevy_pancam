@@ -199,7 +199,7 @@ fn max_scale_within_bounds(
 
 #[cfg(not(feature = "leafwing-input-manager"))]
 fn check_mouse_interaction<'a>(
-    mouse_buttons: &'a Res<Input<MouseButton>>,
+    mouse_buttons: &'a Res<ButtonInput<MouseButton>>,
 ) -> impl Fn(&'a MouseButton) -> bool {
     |btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn)
 }
@@ -227,7 +227,7 @@ fn camera_movement(
         &OrthographicProjection,
     )>,
     mut last_pos: Local<Option<Vec2>>,
-    #[cfg(not(feature = "leafwing-input-manager"))] mouse_buttons: Res<Input<MouseButton>>,
+    #[cfg(not(feature = "leafwing-input-manager"))] mouse_buttons: Res<ButtonInput<MouseButton>>,
     #[cfg(feature = "leafwing-input-manager")] action_query: Query<&ActionState<PanCamAction>>,
 ) {
     if let Ok(window) = primary_window.get_single() {
