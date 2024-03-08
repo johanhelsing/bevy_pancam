@@ -400,8 +400,6 @@ impl Default for PanCam {
 mod tests {
     use std::f32::INFINITY;
 
-    use bevy::prelude::OrthographicProjection;
-
     use super::*;
 
     /// Simple mock function to construct a square projection from a window size
