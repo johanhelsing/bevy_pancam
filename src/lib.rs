@@ -1,12 +1,15 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
-use bevy::{
-    input::mouse::{MouseScrollUnit, MouseWheel},
-    math::vec2,
-    prelude::*,
-    render::camera::CameraProjection,
-    window::PrimaryWindow,
+use bevy::{math::vec2, prelude::*, render::camera::CameraProjection, window::PrimaryWindow};
+
+#[cfg(not(feature = "leafwing-input-manager"))]
+use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
+
+#[cfg(feature = "leafwing-input-manager")]
+use leafwing_input_manager::{
+    action_state::ActionState, axislike::SingleAxis, input_map::InputMap,
+    plugin::InputManagerPlugin, Actionlike, InputManagerBundle,
 };
 
 /// Plugin that adds the necessary systems for `PanCam` components to work
@@ -34,6 +37,11 @@ impl Plugin for PanCamPlugin {
                     PanCamSystemSet.run_if(resource_equals(EguiWantsFocus(false))),
                 );
         }
+
+        #[cfg(feature = "leafwing-input-manager")]
+        {
+            app.add_plugins(InputManagerPlugin::<PanCamAction>::default());
+        }
     }
 }
 
@@ -59,17 +67,28 @@ fn check_egui_wants_focus(
 
 fn camera_zoom(
     mut query: Query<(&PanCam, &mut OrthographicProjection, &mut Transform)>,
-    mut scroll_events: EventReader<MouseWheel>,
+    #[cfg(not(feature = "leafwing-input-manager"))] mut scroll_events: EventReader<MouseWheel>,
+    #[cfg(feature = "leafwing-input-manager")] action_query: Query<&ActionState<PanCamAction>>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let pixels_per_line = 100.; // Maybe make configurable?
-    let scroll = scroll_events
-        .read()
-        .map(|ev| match ev.unit {
-            MouseScrollUnit::Pixel => ev.y,
-            MouseScrollUnit::Line => ev.y * pixels_per_line,
-        })
-        .sum::<f32>();
+    #[cfg(not(feature = "leafwing-input-manager"))]
+    let scroll = {
+        let pixels_per_line = 100.; // Maybe make configurable?
+        scroll_events
+            .read()
+            .map(|ev| match ev.unit {
+                MouseScrollUnit::Pixel => ev.y,
+                MouseScrollUnit::Line => ev.y * pixels_per_line,
+            })
+            .sum::<f32>()
+    };
+
+    #[cfg(feature = "leafwing-input-manager")]
+    let scroll = if let Ok(action_state) = action_query.get_single() {
+        action_state.value(&PanCamAction::Zoom)
+    } else {
+        0.
+    };
 
     if scroll == 0. {
         return;
@@ -178,11 +197,38 @@ fn max_scale_within_bounds(
     bounds_size / base_world_size
 }
 
+#[cfg(not(feature = "leafwing-input-manager"))]
+fn check_mouse_interaction<'a>(
+    mouse_buttons: &'a Res<ButtonInput<MouseButton>>,
+) -> impl Fn(&'a MouseButton) -> bool {
+    |btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn)
+}
+
+#[cfg(feature = "leafwing-input-manager")]
+fn check_leafwing_interaction(query: &Query<&ActionState<PanCamAction>>) -> bool {
+    let Ok(action_state) = query.get_single() else {
+        return false;
+    };
+    action_state.pressed(&PanCamAction::Grab) && !action_state.just_pressed(&PanCamAction::Grab)
+}
+
 fn camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
-    mouse_buttons: Res<ButtonInput<MouseButton>>,
-    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
+    #[cfg(feature = "leafwing-input-manager")] mut query: Query<(
+        &PanCam,
+        &PanCam,
+        &mut Transform,
+        &OrthographicProjection,
+    )>,
+    #[cfg(not(feature = "leafwing-input-manager"))] mut query: Query<(
+        &PanCam,
+        &PanCamGrabButtons,
+        &mut Transform,
+        &OrthographicProjection,
+    )>,
     mut last_pos: Local<Option<Vec2>>,
+    #[cfg(not(feature = "leafwing-input-manager"))] mouse_buttons: Res<ButtonInput<MouseButton>>,
+    #[cfg(feature = "leafwing-input-manager")] action_query: Query<&ActionState<PanCamAction>>,
 ) {
     let window = primary_window.single();
     let window_size = Vec2::new(window.width(), window.height());
@@ -194,13 +240,16 @@ fn camera_movement(
     };
     let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
-    for (cam, mut transform, projection) in &mut query {
-        if cam.enabled
-            && cam
-                .grab_buttons
-                .iter()
-                .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
-        {
+    for (cam, _inputs, mut transform, projection) in &mut query {
+        #[cfg(not(feature = "leafwing-input-manager"))]
+        let grabbing = _inputs
+            .0
+            .iter()
+            .any(check_mouse_interaction(&mouse_buttons));
+        #[cfg(feature = "leafwing-input-manager")]
+        let grabbing = check_leafwing_interaction(&action_query);
+
+        if cam.enabled && grabbing {
             let proj_size = projection.area.size();
 
             let world_units_per_device_pixel = proj_size / window_size;
@@ -234,12 +283,66 @@ fn camera_movement(
     *last_pos = Some(current_pos);
 }
 
+/// Group of leafwing input actions for the `PanCam` component
+/// This is only available when the `leafwing-input-manager` feature is enabled
+#[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
+#[cfg(feature = "leafwing-input-manager")]
+pub enum PanCamAction {
+    /// Action to grab the camera
+    Grab,
+    /// Action to zoom in and out
+    Zoom,
+}
+
+#[cfg(not(feature = "leafwing-input-manager"))]
+#[derive(Component)]
+/// Component that adds panning camera controls to an orthographic camera
+pub struct PanCamGrabButtons(pub Vec<MouseButton>);
+
+/// Bundle for adding panning camera controls to an orthographic camera
+/// This bundle adds both the `PanCam` component and the necessary input handling
+#[derive(Bundle)]
+pub struct PanCamBundle {
+    /// The panning camera component
+    pub pan_cam: PanCam,
+    #[cfg(feature = "leafwing-input-manager")]
+    /// The input manager bundle for the panning camera
+    pub inputs: InputManagerBundle<PanCamAction>,
+    #[cfg(not(feature = "leafwing-input-manager"))]
+    /// The mouse buttons that can be used to grab the camera
+    pub inputs: PanCamGrabButtons,
+}
+
+impl Default for PanCamBundle {
+    fn default() -> Self {
+        Self {
+            pan_cam: PanCam::default(),
+            #[cfg(feature = "leafwing-input-manager")]
+            inputs: InputManagerBundle::<PanCamAction> {
+                action_state: ActionState::default(),
+                input_map: InputMap::default()
+                    .insert_multiple([
+                        (PanCamAction::Grab, MouseButton::Left),
+                        (PanCamAction::Grab, MouseButton::Middle),
+                        (PanCamAction::Grab, MouseButton::Right),
+                    ])
+                    .insert(PanCamAction::Zoom, SingleAxis::mouse_wheel_y())
+                    .build(),
+            },
+            #[cfg(not(feature = "leafwing-input-manager"))]
+            inputs: PanCamGrabButtons(vec![
+                MouseButton::Left,
+                MouseButton::Right,
+                MouseButton::Middle,
+            ]),
+        }
+    }
+}
+
 /// A component that adds panning camera controls to an orthographic camera
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct PanCam {
-    /// The mouse buttons that will be used to drag and pan the camera
-    pub grab_buttons: Vec<MouseButton>,
     /// Whether camera currently responds to user input
     pub enabled: bool,
     /// When true, zooming the camera will center on the mouse cursor
@@ -281,7 +384,6 @@ pub struct PanCam {
 impl Default for PanCam {
     fn default() -> Self {
         Self {
-            grab_buttons: vec![MouseButton::Left, MouseButton::Right, MouseButton::Middle],
             enabled: true,
             zoom_to_cursor: true,
             min_scale: 0.00001,
@@ -297,8 +399,6 @@ impl Default for PanCam {
 #[cfg(test)]
 mod tests {
     use std::f32::INFINITY;
-
-    use bevy::prelude::OrthographicProjection;
 
     use super::*;
 

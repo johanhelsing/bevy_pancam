@@ -1,17 +1,17 @@
 use bevy::prelude::*;
-use bevy_pancam::{PanCam, PanCamPlugin};
+use bevy_pancam::{PanCam, PanCamBundle, PanCamPlugin};
 use rand::prelude::random;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PanCamPlugin::default()))
+        .add_plugins((DefaultPlugins, PanCamPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, toggle_key)
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera2dBundle::default(), PanCam::default()));
+    commands.spawn((Camera2dBundle::default(), PanCamBundle::default()));
 
     let n = 20;
     let spacing = 50.;

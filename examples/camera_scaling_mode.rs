@@ -1,10 +1,10 @@
 use bevy::{prelude::*, render::camera::ScalingMode};
-use bevy_pancam::{PanCam, PanCamPlugin};
+use bevy_pancam::{PanCam, PanCamBundle, PanCamPlugin};
 use rand::prelude::random;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PanCamPlugin::default()))
+        .add_plugins((DefaultPlugins, PanCamPlugin))
         .add_systems(Startup, setup)
         .run();
 }
@@ -15,11 +15,14 @@ fn setup(mut commands: Commands) {
 
     commands.spawn((
         cam,
-        PanCam {
-            min_x: Some(-10.),
-            max_x: Some(10.),
-            min_y: Some(-10.),
-            max_y: Some(10.0),
+        PanCamBundle {
+            pan_cam: PanCam {
+                min_x: Some(-10.),
+                max_x: Some(10.),
+                min_y: Some(-10.),
+                max_y: Some(10.0),
+                ..default()
+            },
             ..default()
         },
     ));

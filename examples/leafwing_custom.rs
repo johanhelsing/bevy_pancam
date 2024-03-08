@@ -1,5 +1,12 @@
 use bevy::prelude::*;
-use bevy_pancam::{PanCam, PanCamBundle, PanCamPlugin};
+use bevy_pancam::{PanCamAction, PanCamBundle, PanCamPlugin};
+use leafwing_input_manager::{
+    action_state::ActionState,
+    axislike::SingleAxis,
+    input_map::InputMap,
+    user_input::{InputKind, Modifier},
+    InputManagerBundle,
+};
 use rand::prelude::random;
 
 fn main() {
@@ -13,12 +20,18 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         Camera2dBundle::default(),
         PanCamBundle {
-            pan_cam: PanCam {
-                // Set max scale in order to prevent the camera from zooming too far out
-                max_scale: Some(40.),
-                // Set min scale in order to prevent the camera from zooming too far in
-                min_scale: 1.,
-                ..default()
+            inputs: InputManagerBundle::<PanCamAction> {
+                action_state: ActionState::default(),
+                input_map: InputMap::default()
+                    .insert_chord(
+                        PanCamAction::Grab,
+                        [
+                            InputKind::Modifier(Modifier::Alt),
+                            InputKind::Mouse(MouseButton::Left),
+                        ],
+                    )
+                    .insert(PanCamAction::Zoom, SingleAxis::mouse_wheel_y())
+                    .build(),
             },
             ..default()
         },
