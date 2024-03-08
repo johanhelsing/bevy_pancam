@@ -295,17 +295,6 @@ pub enum PanCamAction {
     Zoom,
 }
 
-/// Group of leafwing input actions for the `PanCam` component
-/// This is only available when the `leafwing-input-manager` feature is enabled
-#[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
-#[cfg(feature = "leafwing-input-manager")]
-pub enum PanCamAction {
-    /// Action to grab the camera
-    Grab,
-    /// Action to zoom in and out
-    Zoom,
-}
-
 #[cfg(not(feature = "leafwing-input-manager"))]
 #[derive(Component)]
 /// Component that adds panning camera controls to an orthographic camera
@@ -411,8 +400,6 @@ impl Default for PanCam {
 #[cfg(test)]
 mod tests {
     use std::f32::INFINITY;
-
-    use bevy::prelude::OrthographicProjection;
 
     use super::*;
 
