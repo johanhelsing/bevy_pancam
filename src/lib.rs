@@ -184,54 +184,55 @@ fn camera_movement(
     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
 ) {
-    let window = primary_window.single();
-    let window_size = Vec2::new(window.width(), window.height());
+    if let Ok(window) = primary_window.get_single() {
+        let window_size = Vec2::new(window.width(), window.height());
 
-    // Use position instead of MouseMotion, otherwise we don't get acceleration movement
-    let current_pos = match window.cursor_position() {
-        Some(c) => Vec2::new(c.x, -c.y),
-        None => return,
-    };
-    let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
+        // Use position instead of MouseMotion, otherwise we don't get acceleration movement
+        let current_pos = match window.cursor_position() {
+            Some(c) => Vec2::new(c.x, -c.y),
+            None => return,
+        };
+        let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
-    for (cam, mut transform, projection) in &mut query {
-        if cam.enabled
-            && cam
-                .grab_buttons
-                .iter()
-                .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
-        {
-            let proj_size = projection.area.size();
+        for (cam, mut transform, projection) in &mut query {
+            if cam.enabled
+                && cam
+                    .grab_buttons
+                    .iter()
+                    .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
+            {
+                let proj_size = projection.area.size();
 
-            let world_units_per_device_pixel = proj_size / window_size;
+                let world_units_per_device_pixel = proj_size / window_size;
 
-            // The proposed new camera position
-            let delta_world = delta_device_pixels * world_units_per_device_pixel;
-            let mut proposed_cam_transform = transform.translation - delta_world.extend(0.);
+                // The proposed new camera position
+                let delta_world = delta_device_pixels * world_units_per_device_pixel;
+                let mut proposed_cam_transform = transform.translation - delta_world.extend(0.);
 
-            // Check whether the proposed camera movement would be within the provided boundaries, override it if we
-            // need to do so to stay within bounds.
-            if let Some(min_x_boundary) = cam.min_x {
-                let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
-                proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
+                // Check whether the proposed camera movement would be within the provided boundaries, override it if we
+                // need to do so to stay within bounds.
+                if let Some(min_x_boundary) = cam.min_x {
+                    let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
+                    proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
+                }
+                if let Some(max_x_boundary) = cam.max_x {
+                    let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
+                    proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
+                }
+                if let Some(min_y_boundary) = cam.min_y {
+                    let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
+                    proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
+                }
+                if let Some(max_y_boundary) = cam.max_y {
+                    let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
+                    proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
+                }
+
+                transform.translation = proposed_cam_transform;
             }
-            if let Some(max_x_boundary) = cam.max_x {
-                let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
-                proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
-            }
-            if let Some(min_y_boundary) = cam.min_y {
-                let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
-                proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
-            }
-            if let Some(max_y_boundary) = cam.max_y {
-                let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
-                proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
-            }
-
-            transform.translation = proposed_cam_transform;
         }
+        *last_pos = Some(current_pos);
     }
-    *last_pos = Some(current_pos);
 }
 
 /// A component that adds panning camera controls to an orthographic camera
