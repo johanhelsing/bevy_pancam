@@ -58,11 +58,10 @@ See the [`simple`](./examples/simple.rs) and [`toggle`](./examples/toggle.rs) ex
 
 The `main` branch targets the latest bevy release.
 
-I intend to support the `main` branch of Bevy in the `bevy-main` branch.
-
 |bevy|bevy_pancam|
 |----|-----------|
-|0.13|0.11, main |
+|0.14|0.12, main |
+|0.13|0.11       |
 |0.12|0.10       |
 |0.11|0.9        |
 |0.10|0.8        |
