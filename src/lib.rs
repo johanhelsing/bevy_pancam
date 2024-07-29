@@ -163,7 +163,7 @@ fn constrain_proj_scale(
     // If there is both a min and max boundary, that limits how far we can zoom.
     // Make sure we don't exceed that
     if bounded_area_size.x.is_finite() || bounded_area_size.y.is_finite() {
-        let max_safe_scale = max_scale_within_bounds(bounded_area_size, &proj, window_size);
+        let max_safe_scale = max_scale_within_bounds(bounded_area_size, proj, window_size);
         proj.scale = proj.scale.min(max_safe_scale.x).min(max_safe_scale.y);
     }
 }
