@@ -234,68 +234,62 @@ pub struct PanCam {
     /// The minimum scale for the camera
     ///
     /// The orthographic projection's scale will be clamped at this value when
-    /// zooming in
+    /// zooming in. Pass `f32::NEG_INFINITY` to disable clamping.
     pub min_scale: f32,
     /// The maximum scale for the camera
     ///
-    /// If present, the orthographic projection's scale will be clamped at
-    /// this value when zooming out.
-    pub max_scale: Option<f32>,
+    /// The orthographic projection's scale will be clamped at this value when
+    /// zooming out. Pass `f32::INFINITY` to disable clamping.
+    pub max_scale: f32,
     /// The minimum x position of the camera window
     ///
-    /// If present, the orthographic projection will be clamped to this boundary
-    /// both when dragging the window, and zooming out.
-    pub min_x: Option<f32>,
+    /// The orthographic projection will be clamped to this boundary both when
+    /// dragging the window, and zooming out. Pass `f32::NEG_INFINITY` to disable
+    /// clamping.
+    pub min_x: f32,
     /// The maximum x position of the camera window
     ///
-    /// If present, the orthographic projection will be clamped to this boundary
-    /// both when dragging the window, and zooming out.
-    pub max_x: Option<f32>,
+    /// The orthographic projection will be clamped to this boundary both when
+    /// dragging the window, and zooming out. Pass `f32::INFINITY` to disable
+    /// clamping.
+    pub max_x: f32,
     /// The minimum y position of the camera window
     ///
-    /// If present, the orthographic projection will be clamped to this boundary
-    /// both when dragging the window, and zooming out.
-    pub min_y: Option<f32>,
+    /// The orthographic projection will be clamped to this boundary both when
+    /// dragging the window, and zooming out. Pass `f32::NEG_INFINITY` to disable
+    /// clamping.
+    pub min_y: f32,
     /// The maximum y position of the camera window
     ///
-    /// If present, the orthographic projection will be clamped to this boundary
-    /// both when dragging the window, and zooming out.
-    pub max_y: Option<f32>,
+    /// The orthographic projection will be clamped to this boundary both when
+    /// dragging the window, and zooming out. Pass `f32::INFINITY` to disable
+    /// clamping.
+    pub max_y: f32,
 }
 
 impl PanCam {
-    /// Returns (min, max) bound tuple. If some bounds were not provided, either
-    /// `f32::INFINITY` or `f32::NEG_INFINITY` will be used.
+    /// Returns (min, max) bound tuple
     fn bounds(&self) -> (Vec2, Vec2) {
-        let min = vec2(
-            self.min_x.unwrap_or(f32::NEG_INFINITY),
-            self.min_y.unwrap_or(f32::NEG_INFINITY),
-        );
-        let max = vec2(
-            self.max_x.unwrap_or(f32::INFINITY),
-            self.max_y.unwrap_or(f32::INFINITY),
-        );
+        let min = vec2(self.min_x, self.min_y);
+        let max = vec2(self.max_x, self.max_y);
         (min, max)
     }
 
-    /// Returns the bounding `Rect`. If some bounds were not provided, either
-    /// `f32::INFINITY` or `f32::NEG_INFINITY` will be used.
+    /// Returns the bounding `Rect`
     fn rect(&self) -> Rect {
         let (min, max) = self.bounds();
         Rect { min, max }
     }
 
-    /// Returns the bounding `Aabb2d`. If some bounds were not provided, either
-    /// `f32::INFINITY` or `f32::NEG_INFINITY` will be used.
+    /// Returns the bounding `Aabb2d`
     fn aabb(&self) -> Aabb2d {
         let (min, max) = self.bounds();
         Aabb2d { min, max }
     }
 
-    /// Returns the scale inclusive range. If upper bound was not provided,
-    /// `f32::INFINITY` will be used.
+    /// Returns the scale inclusive range
     fn scale_range(&self) -> RangeInclusive<f32> {
-        self.min_scale..=self.max_scale.unwrap_or(f32::INFINITY)
+        self.min_scale..=self.max_scale
     }
 }
 
@@ -305,12 +299,12 @@ impl Default for PanCam {
             grab_buttons: vec![MouseButton::Left, MouseButton::Right, MouseButton::Middle],
             enabled: true,
             zoom_to_cursor: true,
-            min_scale: 0.00001,
-            max_scale: None,
-            min_x: None,
-            max_x: None,
-            min_y: None,
-            max_y: None,
+            min_scale: f32::NEG_INFINITY,
+            max_scale: f32::INFINITY,
+            min_x: f32::NEG_INFINITY,
+            max_x: f32::INFINITY,
+            min_y: f32::NEG_INFINITY,
+            max_y: f32::INFINITY,
         }
     }
 }
