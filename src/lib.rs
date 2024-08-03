@@ -83,7 +83,7 @@ fn do_camera_zoom(
         .map(|cursor_pos| (cursor_pos / window_size) * 2. - Vec2::ONE)
         .map(|p| vec2(p.x, -p.y));
 
-    for (cam, mut proj, mut pos) in &mut query {
+    for (cam, mut proj, mut transform) in &mut query {
         if !cam.enabled {
             continue;
         }
@@ -107,7 +107,7 @@ fn do_camera_zoom(
 
         let proj_size = proj.area.max / old_scale;
         let cursor_world_pos =
-            pos.translation.truncate() + cursor_normalized_screen_pos * proj_size * old_scale;
+            transform.translation.truncate() + cursor_normalized_screen_pos * proj_size * old_scale;
         let proposed_cam_pos =
             cursor_world_pos - cursor_normalized_screen_pos * proj_size * proj.scale;
 
@@ -115,8 +115,8 @@ fn do_camera_zoom(
         // boundary. If the most recent change to the camera zoom would move cause
         // parts of the window beyond the boundary to be shown, we need to change the
         // camera position to keep the viewport within bounds.
-        pos.translation = clamp_to_safe_zone(proposed_cam_pos, cam.aabb(), proj.area.size())
-            .extend(pos.translation.z);
+        transform.translation = clamp_to_safe_zone(proposed_cam_pos, cam.aabb(), proj.area.size())
+            .extend(transform.translation.z);
     }
 }
 
