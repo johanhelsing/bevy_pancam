@@ -115,9 +115,7 @@ fn do_camera_zoom(
         // boundary. If the most recent change to the camera zoom would move cause
         // parts of the window beyond the boundary to be shown, we need to change the
         // camera position to keep the viewport within bounds.
-        let aabb = cam.aabb().shrink(proj.area.size() / 2.);
-        pos.translation = proposed_cam_pos
-            .clamp(aabb.min, aabb.max)
+        pos.translation = clamp_to_safe_zone(proposed_cam_pos, cam.aabb(), proj.area.size())
             .extend(pos.translation.z);
     }
 }
@@ -168,6 +166,16 @@ fn constrain_proj_scale(
     }
 }
 
+/// Clamps a camera position to a safe zone. "Safe" means that each screen
+/// corner is constrained to the corresponding bound corner.
+///
+/// Since bevy doesn't provide a `shrink` method on a `Rect` yet, we have to
+/// operate on `Aabb2d` type.
+fn clamp_to_safe_zone(pos: Vec2, aabb: Aabb2d, bounded_area_size: Vec2) -> Vec2 {
+    let aabb = aabb.shrink(bounded_area_size / 2.);
+    pos.clamp(aabb.min, aabb.max)
+}
+
 fn do_camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
@@ -202,11 +210,10 @@ fn do_camera_movement(
 
         // The proposed new camera position
         let delta_world = delta_device_pixels * world_units_per_device_pixel;
-        let aabb = cam.aabb().shrink(proj_area_size / 2.);
-        let proposed_cam_pos =
-            (transform.translation.truncate() - delta_world).clamp(aabb.min, aabb.max);
+        let proposed_cam_pos = transform.translation.truncate() - delta_world;
 
-        transform.translation = proposed_cam_pos.extend(transform.translation.z);
+        transform.translation = clamp_to_safe_zone(proposed_cam_pos, cam.aabb(), proj_area_size)
+            .extend(transform.translation.z);
     }
     *last_pos = Some(current_pos);
 }
@@ -280,9 +287,6 @@ impl PanCam {
 
     /// Returns the bounding `Aabb2d`. If some bounds were not provided, either
     /// `f32::INFINITY` or `f32::NEG_INFINITY` will be used.
-    ///
-    /// Since bevy doesn't provide a `shrink` method on a `Rect` yet, we have to
-    /// additionally return the `Aabb2d` type .
     fn aabb(&self) -> Aabb2d {
         let (min, max) = self.bounds();
         Aabb2d { min, max }
