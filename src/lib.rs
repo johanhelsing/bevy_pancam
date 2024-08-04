@@ -299,7 +299,7 @@ impl Default for PanCam {
             grab_buttons: vec![MouseButton::Left, MouseButton::Right, MouseButton::Middle],
             enabled: true,
             zoom_to_cursor: true,
-            min_scale: f32::NEG_INFINITY,
+            min_scale: 0.00001,
             max_scale: f32::INFINITY,
             min_x: f32::NEG_INFINITY,
             max_x: f32::INFINITY,
