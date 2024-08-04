@@ -16,10 +16,10 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         cam,
         PanCam {
-            min_x: Some(-10.),
-            max_x: Some(10.),
-            min_y: Some(-10.),
-            max_y: Some(10.0),
+            min_x: -10.,
+            max_x: 10.,
+            min_y: -10.,
+            max_y: 10.0,
             ..default()
         },
     ));
