@@ -21,13 +21,34 @@ pub struct PanCamPlugin;
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
 pub struct PanCamSystemSet;
 
+/// How the camera is moved.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, Default)]
+pub enum MoveMode {
+    #[default]
+    /// Camera is moved through only the mouse.
+    Mouse,
+    /// Camera is moved through only the keyboard.
+    Keyboard,
+}
+
+/// Which keys move the camera in particular directions for keyboard movement.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
+pub struct DirectionKeys {
+    up: Vec<KeyCode>,
+    down: Vec<KeyCode>,
+    left: Vec<KeyCode>,
+    right: Vec<KeyCode>,
+}
+
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
             (do_camera_movement, do_camera_zoom).in_set(PanCamSystemSet),
         )
-        .register_type::<PanCam>();
+        .register_type::<PanCam>()
+        .register_type::<MoveMode>()
+        .register_type::<DirectionKeys>();
 
         #[cfg(feature = "bevy_egui")]
         {
@@ -179,8 +200,10 @@ fn clamp_to_safe_zone(pos: Vec2, aabb: Aabb2d, bounded_area_size: Vec2) -> Vec2 
 fn do_camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
+    keyboard_buttons: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
+    time: Res<Time>,
 ) {
     let Ok(window) = primary_window.get_single() else {
         return;
@@ -196,21 +219,81 @@ fn do_camera_movement(
     let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
     for (cam, mut transform, projection) in &mut query {
-        if !cam.enabled
-            || !cam
-                .grab_buttons
-                .iter()
-                .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
-        {
-            continue;
-        }
+        let (proposed_cam_pos, proj_area_size) = match cam.move_mode {
+            MoveMode::Mouse => {
+                if !cam.enabled
+                    || !cam
+                        .grab_buttons
+                        .iter()
+                        .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
+                {
+                    continue;
+                }
 
-        let proj_area_size = projection.area.size();
-        let world_units_per_device_pixel = proj_area_size / window_size;
+                let proj_area_size = projection.area.size();
+                let world_units_per_device_pixel = proj_area_size / window_size;
 
-        // The proposed new camera position
-        let delta_world = delta_device_pixels * world_units_per_device_pixel;
-        let proposed_cam_pos = transform.translation.truncate() - delta_world;
+                // The proposed new camera position
+                let delta_world = delta_device_pixels * world_units_per_device_pixel;
+                (
+                    transform.translation.truncate() - delta_world,
+                    proj_area_size,
+                )
+            }
+            MoveMode::Keyboard => {
+                let mut direction = Vec2::ZERO;
+
+                if cam
+                    .move_keys
+                    .left
+                    .iter()
+                    .any(|key| keyboard_buttons.pressed(*key))
+                {
+                    direction.x += 1.;
+                }
+
+                if cam
+                    .move_keys
+                    .right
+                    .iter()
+                    .any(|key| keyboard_buttons.pressed(*key))
+                {
+                    direction.x -= 1.;
+                }
+
+                if cam
+                    .move_keys
+                    .up
+                    .iter()
+                    .any(|key| keyboard_buttons.pressed(*key))
+                {
+                    direction.y -= 1.;
+                }
+
+                if cam
+                    .move_keys
+                    .down
+                    .iter()
+                    .any(|key| keyboard_buttons.pressed(*key))
+                {
+                    direction.y += 1.;
+                }
+
+                if direction.length() == 0. {
+                    continue;
+                }
+
+                let delta = time.delta_seconds()
+                    * direction.normalize_or_zero()
+                    * cam.speed
+                    * projection.scale;
+
+                (
+                    transform.translation.truncate() - delta,
+                    projection.area.size(),
+                )
+            }
+        };
 
         transform.translation = clamp_to_safe_zone(proposed_cam_pos, cam.aabb(), proj_area_size)
             .extend(transform.translation.z);
@@ -222,6 +305,12 @@ fn do_camera_movement(
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct PanCam {
+    /// How the camera is moved
+    pub move_mode: MoveMode,
+    /// The keyboard keys that will be used to move the camera
+    pub move_keys: DirectionKeys,
+    /// Speed for keyboard movement
+    pub speed: f32,
     /// The mouse buttons that will be used to drag and pan the camera
     pub grab_buttons: Vec<MouseButton>,
     /// Whether camera currently responds to user input
@@ -296,6 +385,14 @@ impl PanCam {
 impl Default for PanCam {
     fn default() -> Self {
         Self {
+            move_mode: MoveMode::Keyboard,
+            move_keys: DirectionKeys {
+                up: vec![KeyCode::ArrowUp, KeyCode::KeyW],
+                down: vec![KeyCode::ArrowDown, KeyCode::KeyS],
+                left: vec![KeyCode::ArrowLeft, KeyCode::KeyA],
+                right: vec![KeyCode::ArrowRight, KeyCode::KeyD],
+            },
+            speed: 200.,
             grab_buttons: vec![MouseButton::Left, MouseButton::Right, MouseButton::Middle],
             enabled: true,
             zoom_to_cursor: true,
