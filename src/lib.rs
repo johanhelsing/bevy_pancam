@@ -21,16 +21,6 @@ pub struct PanCamPlugin;
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
 pub struct PanCamSystemSet;
 
-/// How the camera is moved.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, Default)]
-pub enum MoveMode {
-    #[default]
-    /// Camera is moved through only the mouse.
-    Mouse,
-    /// Camera is moved through only the keyboard.
-    Keyboard,
-}
-
 /// Which keys move the camera in particular directions for keyboard movement.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
 pub struct DirectionKeys {
@@ -47,7 +37,6 @@ impl Plugin for PanCamPlugin {
             (do_camera_movement, do_camera_zoom).in_set(PanCamSystemSet),
         )
         .register_type::<PanCam>()
-        .register_type::<MoveMode>()
         .register_type::<DirectionKeys>();
 
         #[cfg(feature = "bevy_egui")]
@@ -219,81 +208,82 @@ fn do_camera_movement(
     let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
     for (cam, mut transform, projection) in &mut query {
-        let (proposed_cam_pos, proj_area_size) = match cam.move_mode {
-            MoveMode::Mouse => {
-                if !cam.enabled
-                    || !cam
-                        .grab_buttons
-                        .iter()
-                        .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
-                {
-                    continue;
-                }
+        if !cam.enabled {
+            continue;
+        }
 
-                let proj_area_size = projection.area.size();
-                let world_units_per_device_pixel = proj_area_size / window_size;
+        let proj_area_size = projection.area.size();
 
-                // The proposed new camera position
-                let delta_world = delta_device_pixels * world_units_per_device_pixel;
-                (
-                    transform.translation.truncate() - delta_world,
-                    proj_area_size,
-                )
-            }
-            MoveMode::Keyboard => {
-                let mut direction = Vec2::ZERO;
-
-                if cam
-                    .move_keys
-                    .left
-                    .iter()
-                    .any(|key| keyboard_buttons.pressed(*key))
-                {
-                    direction.x += 1.;
-                }
-
-                if cam
-                    .move_keys
-                    .right
-                    .iter()
-                    .any(|key| keyboard_buttons.pressed(*key))
-                {
-                    direction.x -= 1.;
-                }
-
-                if cam
-                    .move_keys
-                    .up
-                    .iter()
-                    .any(|key| keyboard_buttons.pressed(*key))
-                {
-                    direction.y -= 1.;
-                }
-
-                if cam
-                    .move_keys
-                    .down
-                    .iter()
-                    .any(|key| keyboard_buttons.pressed(*key))
-                {
-                    direction.y += 1.;
-                }
-
-                if direction.length() == 0. {
-                    continue;
-                }
-
-                let delta = time.delta_seconds()
-                    * direction.normalize_or_zero()
-                    * cam.speed
-                    * projection.scale;
-
-                (
-                    transform.translation.truncate() - delta,
-                    projection.area.size(),
-                )
-            }
+        let mouse_delta = if !cam
+            .grab_buttons
+            .iter()
+            .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
+        {
+            None
+        } else {
+            Some(delta_device_pixels * proj_area_size / window_size)
         };
+
+        let mut direction = Vec2::ZERO;
+
+        if cam
+            .move_keys
+            .left
+            .iter()
+            .any(|key| keyboard_buttons.pressed(*key))
+        {
+            direction.x += 1.;
+        }
+
+        if cam
+            .move_keys
+            .right
+            .iter()
+            .any(|key| keyboard_buttons.pressed(*key))
+        {
+            direction.x -= 1.;
+        }
+
+        if cam
+            .move_keys
+            .up
+            .iter()
+            .any(|key| keyboard_buttons.pressed(*key))
+        {
+            direction.y -= 1.;
+        }
+
+        if cam
+            .move_keys
+            .down
+            .iter()
+            .any(|key| keyboard_buttons.pressed(*key))
+        {
+            direction.y += 1.;
+        }
+
+        let keyboard_delta = if direction.length_squared() == 0. {
+            None
+        } else {
+            Some(
+                time.delta_seconds() * direction.normalize_or_zero() * cam.speed * projection.scale,
+            )
+        };
+
+        if mouse_delta.is_none() && keyboard_delta.is_none() {
+            continue;
+        }
+
+        // The proposed new camera position
+        let mut proposed_cam_pos = transform.translation.truncate();
+
+        if let Some(mouse_delta) = mouse_delta {
+            proposed_cam_pos -= mouse_delta;
+        }
+
+        if let Some(keyboard_delta) = keyboard_delta {
+            proposed_cam_pos -= keyboard_delta;
+        }
 
         transform.translation = clamp_to_safe_zone(proposed_cam_pos, cam.aabb(), proj_area_size)
             .extend(transform.translation.z);
@@ -305,8 +295,6 @@ fn do_camera_movement(
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct PanCam {
-    /// How the camera is moved
-    pub move_mode: MoveMode,
     /// The keyboard keys that will be used to move the camera
     pub move_keys: DirectionKeys,
     /// Speed for keyboard movement
@@ -385,7 +373,6 @@ impl PanCam {
 impl Default for PanCam {
     fn default() -> Self {
         Self {
-            move_mode: MoveMode::Keyboard,
             move_keys: DirectionKeys {
                 up: vec![KeyCode::ArrowUp, KeyCode::KeyW],
                 down: vec![KeyCode::ArrowDown, KeyCode::KeyS],
