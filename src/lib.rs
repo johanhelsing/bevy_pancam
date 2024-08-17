@@ -24,10 +24,14 @@ pub struct PanCamSystemSet;
 /// Which keys move the camera in particular directions for keyboard movement.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
 pub struct DirectionKeys {
-    up: Vec<KeyCode>,
-    down: Vec<KeyCode>,
-    left: Vec<KeyCode>,
-    right: Vec<KeyCode>,
+    ///  The keys that move the camera up.
+    pub up: Vec<KeyCode>,
+    ///  The keys that move the camera down.
+    pub down: Vec<KeyCode>,
+    ///  The keys that move the camera left.
+    pub left: Vec<KeyCode>,
+    ///  The keys that move the camera right.
+    pub right: Vec<KeyCode>,
 }
 
 impl Plugin for PanCamPlugin {
