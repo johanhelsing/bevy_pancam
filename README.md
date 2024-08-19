@@ -15,6 +15,7 @@ Behaves similarly to common online map applications:
 
 - Click and drag to move the camera
 - Scroll to zoom
+- Keep Keyboard buttons pushed to move the camera
 
 ## Usage
 
@@ -41,6 +42,13 @@ Alternatively, set the fields of the `PanCam` component to customize behavior:
 commands.spawn(Camera2dBundle::default())
     .insert(PanCam {
         grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
+        move_keys: DirectionKeys {      // the keyboard buttons used to move the camera
+            up:    vec![KeyCode::KeyQ], // initalize the struct like this or use the provided methods for
+            down:  vec![KeyCode::KeyW], // common key combinations
+            left:  vec![KeyCode::KeyE],
+            right: vec![KeyCode::KeyR],
+        },
+        speed: 400., // the speed for the keyboard movement
         enabled: true, // when false, controls are disabled. See toggle example.
         zoom_to_cursor: true, // whether to zoom towards the mouse or the center of the screen
         min_scale: 1., // prevent the camera from zooming too far in
