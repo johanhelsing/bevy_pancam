@@ -158,8 +158,8 @@ fn do_camera_zoom(
         return;
     };
 
-    for (cam, camera, mut proj, mut transform) in &mut query {
-        if !cam.enabled {
+    for (pan_cam, camera, mut proj, mut transform) in &mut query {
+        if !pan_cam.enabled {
             continue;
         }
 
@@ -168,7 +168,12 @@ fn do_camera_zoom(
         let old_scale = proj.scale;
         proj.scale *= 1. - scroll_offset * ZOOM_SENSITIVITY;
 
-        constrain_proj_scale(&mut proj, cam.rect().size(), &cam.scale_range(), view_size);
+        constrain_proj_scale(
+            &mut proj,
+            pan_cam.rect().size(),
+            &pan_cam.scale_range(),
+            view_size,
+        );
 
         let cursor_normalized_viewport_pos = window
             .cursor_position()
@@ -184,7 +189,7 @@ fn do_camera_zoom(
 
         // Move the camera position to normalize the projection window
         let (Some(cursor_normalized_view_pos), true) =
-            (cursor_normalized_viewport_pos, cam.zoom_to_cursor)
+            (cursor_normalized_viewport_pos, pan_cam.zoom_to_cursor)
         else {
             continue;
         };
@@ -201,8 +206,9 @@ fn do_camera_zoom(
         // boundary. If the most recent change to the camera zoom would move cause
         // parts of the window beyond the boundary to be shown, we need to change the
         // camera position to keep the viewport within bounds.
-        transform.translation = clamp_to_safe_zone(proposed_cam_pos, cam.aabb(), proj.area.size())
-            .extend(transform.translation.z);
+        transform.translation =
+            clamp_to_safe_zone(proposed_cam_pos, pan_cam.aabb(), proj.area.size())
+                .extend(transform.translation.z);
     }
 }
 
@@ -283,14 +289,14 @@ fn do_camera_movement(
     };
     let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
-    for (cam, camera, mut transform, projection) in &mut query {
-        if !cam.enabled {
+    for (pan_cam, camera, mut transform, projection) in &mut query {
+        if !pan_cam.enabled {
             continue;
         }
 
         let proj_area_size = projection.area.size();
 
-        let mouse_delta = if !cam
+        let mouse_delta = if !pan_cam
             .grab_buttons
             .iter()
             .any(|btn| mouse_buttons.pressed(*btn) && !mouse_buttons.just_pressed(*btn))
@@ -301,10 +307,10 @@ fn do_camera_movement(
             delta_device_pixels * proj_area_size / viewport_size
         };
 
-        let direction = cam.move_keys.direction(&keyboard_buttons);
+        let direction = pan_cam.move_keys.direction(&keyboard_buttons);
 
         let keyboard_delta =
-            time.delta_seconds() * direction.normalize_or_zero() * cam.speed * projection.scale;
+            time.delta_seconds() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
         let delta = mouse_delta - keyboard_delta;
 
         if delta == Vec2::ZERO {
@@ -314,8 +320,9 @@ fn do_camera_movement(
         // The proposed new camera position
         let proposed_cam_pos = transform.translation.truncate() - delta;
 
-        transform.translation = clamp_to_safe_zone(proposed_cam_pos, cam.aabb(), proj_area_size)
-            .extend(transform.translation.z);
+        transform.translation =
+            clamp_to_safe_zone(proposed_cam_pos, pan_cam.aabb(), proj_area_size)
+                .extend(transform.translation.z);
     }
     *last_pos = Some(current_pos);
 }
