@@ -138,7 +138,12 @@ fn check_egui_wants_focus(
 }
 
 fn do_camera_zoom(
-    mut query: Query<(&PanCam, &mut OrthographicProjection, &mut Transform)>,
+    mut query: Query<(
+        &PanCam,
+        &Camera,
+        &mut OrthographicProjection,
+        &mut Transform,
+    )>,
     scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
@@ -154,12 +159,7 @@ fn do_camera_zoom(
     };
     let window_size = window.size();
 
-    let cursor_normalized_screen_pos = window
-        .cursor_position()
-        .map(|cursor_pos| (cursor_pos / window_size) * 2. - Vec2::ONE)
-        .map(|p| vec2(p.x, -p.y));
-
-    for (cam, mut proj, mut transform) in &mut query {
+    for (cam, camera, mut proj, mut transform) in &mut query {
         if !cam.enabled {
             continue;
         }
@@ -174,18 +174,28 @@ fn do_camera_zoom(
             window_size,
         );
 
+        let cursor_normalized_viewport_pos = window
+            .cursor_position()
+            .map(|cursor_pos| {
+                let view_rect = camera.logical_viewport_rect().unwrap();
+                ((cursor_pos - view_rect.min) / view_rect.size()) * 2. - Vec2::ONE
+            })
+            .map(|p| vec2(p.x, -p.y));
+
         // Move the camera position to normalize the projection window
-        let (Some(cursor_normalized_screen_pos), true) =
-            (cursor_normalized_screen_pos, cam.zoom_to_cursor)
+        let (Some(cursor_normalized_view_pos), true) =
+            (cursor_normalized_viewport_pos, cam.zoom_to_cursor)
         else {
             continue;
         };
 
         let proj_size = proj.area.max / old_scale;
+
         let cursor_world_pos =
-            transform.translation.truncate() + cursor_normalized_screen_pos * proj_size * old_scale;
+            transform.translation.truncate() + cursor_normalized_view_pos * proj_size * old_scale;
+
         let proposed_cam_pos =
-            cursor_world_pos - cursor_normalized_screen_pos * proj_size * proj.scale;
+            cursor_world_pos - cursor_normalized_view_pos * proj_size * proj.scale;
 
         // As we zoom out, we don't want the viewport to move beyond the provided
         // boundary. If the most recent change to the camera zoom would move cause
