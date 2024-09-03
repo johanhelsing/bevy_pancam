@@ -256,7 +256,7 @@ fn do_camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     keyboard_buttons: Res<ButtonInput<KeyCode>>,
-    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
+    mut query: Query<(&PanCam, &Camera, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
     time: Res<Time>,
 ) {
@@ -273,7 +273,7 @@ fn do_camera_movement(
     };
     let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
-    for (cam, mut transform, projection) in &mut query {
+    for (cam, camera, mut transform, projection) in &mut query {
         if !cam.enabled {
             continue;
         }
@@ -287,7 +287,8 @@ fn do_camera_movement(
         {
             Vec2::ZERO
         } else {
-            delta_device_pixels * proj_area_size / window_size
+            let viewport_size = camera.logical_viewport_size().unwrap_or(window_size);
+            delta_device_pixels * proj_area_size / viewport_size
         };
 
         let direction = cam.move_keys.direction(&keyboard_buttons);
