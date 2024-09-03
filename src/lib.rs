@@ -157,12 +157,13 @@ fn do_camera_zoom(
     let Ok(window) = primary_window.get_single() else {
         return;
     };
-    let window_size = window.size();
 
     for (cam, camera, mut proj, mut transform) in &mut query {
         if !cam.enabled {
             continue;
         }
+
+        let viewport_size = camera.logical_viewport_size().unwrap_or(window.size());
 
         let old_scale = proj.scale;
         proj.scale *= 1. - scroll_offset * ZOOM_SENSITIVITY;
@@ -171,7 +172,7 @@ fn do_camera_zoom(
             &mut proj,
             cam.rect().size(),
             &cam.scale_range(),
-            window_size,
+            viewport_size,
         );
 
         let cursor_normalized_viewport_pos = window
