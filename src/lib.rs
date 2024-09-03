@@ -163,23 +163,22 @@ fn do_camera_zoom(
             continue;
         }
 
-        let viewport_size = camera.logical_viewport_size().unwrap_or(window.size());
+        let view_size = camera.logical_viewport_size().unwrap_or(window.size());
 
         let old_scale = proj.scale;
         proj.scale *= 1. - scroll_offset * ZOOM_SENSITIVITY;
 
-        constrain_proj_scale(
-            &mut proj,
-            cam.rect().size(),
-            &cam.scale_range(),
-            viewport_size,
-        );
+        constrain_proj_scale(&mut proj, cam.rect().size(), &cam.scale_range(), view_size);
 
         let cursor_normalized_viewport_pos = window
             .cursor_position()
             .map(|cursor_pos| {
-                let view_rect = camera.logical_viewport_rect().unwrap();
-                ((cursor_pos - view_rect.min) / view_rect.size()) * 2. - Vec2::ONE
+                let view_pos = camera
+                    .logical_viewport_rect()
+                    .map(|v| v.min)
+                    .unwrap_or(Vec2::ZERO);
+
+                ((cursor_pos - view_pos) / view_size) * 2. - Vec2::ONE
             })
             .map(|p| vec2(p.x, -p.y));
 
