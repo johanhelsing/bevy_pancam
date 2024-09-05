@@ -68,7 +68,7 @@ The `main` branch targets the latest bevy release.
 
 |bevy|bevy_pancam|
 |----|-----------|
-|0.14|0.12, 0.13 main |
+|0.14|0.12, 0.13, 0.14, main |
 |0.13|0.11       |
 |0.12|0.10       |
 |0.11|0.9        |
