@@ -7,7 +7,7 @@ keywords = ["gamedev", "bevy"]
 license = "MIT OR Apache-2.0"
 name = "bevy_pancam"
 repository = "https://github.com/johanhelsing/bevy_pancam"
-version = "0.13.0"
+version = "0.14.0"
 
 [features]
 bevy_egui = ["dep:bevy_egui"]
