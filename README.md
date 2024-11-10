@@ -5,7 +5,7 @@
 [![crates.io](https://img.shields.io/crates/d/bevy_pancam.svg)](https://crates.io/crates/bevy_pancam)
 [![docs.rs](https://img.shields.io/docsrs/bevy_pancam)](https://docs.rs/bevy_pancam)
 
-A 2d-camera plugin for bevy that works with orthographic cameras.
+A 2d camera plugin for bevy that works with orthographic cameras.
 
 The motivation is that this could be used for something like a map editor for a 2d game.
 
@@ -15,7 +15,7 @@ Behaves similarly to common online map applications:
 
 - Click and drag to move the camera
 - Scroll to zoom
-- Keep Keyboard buttons pushed to move the camera
+- Hold keyboard buttons to move the camera
 
 ## Usage
 
