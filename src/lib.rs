@@ -310,7 +310,7 @@ fn do_camera_movement(
         let direction = pan_cam.move_keys.direction(&keyboard_buttons);
 
         let keyboard_delta =
-            time.delta_seconds() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
+            time.delta_secs() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
         let delta = mouse_delta - keyboard_delta;
 
         if delta == Vec2::ZERO {
