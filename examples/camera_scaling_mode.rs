@@ -4,17 +4,18 @@ use rand::prelude::random;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PanCamPlugin::default()))
+        .add_plugins((DefaultPlugins, PanCamPlugin))
         .add_systems(Startup, setup)
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    let mut cam = Camera2dBundle::default();
-    cam.projection.scaling_mode = ScalingMode::FixedVertical(10.0);
+    let mut ortho = OrthographicProjection::default_2d();
+    ortho.scaling_mode = ScalingMode::FixedVertical { viewport_height: 10.0 };
 
     commands.spawn((
-        cam,
+        Camera2d,
+        ortho,
         PanCam {
             min_x: -10.,
             max_x: 10.,
@@ -33,15 +34,14 @@ fn setup(mut commands: Commands) {
             let x = x as f32 * spacing + offset;
             let y = y as f32 * spacing + offset;
             let color = Color::hsl(240., random::<f32>() * 0.3, random::<f32>() * 0.3);
-            commands.spawn(SpriteBundle {
-                sprite: Sprite {
+            commands.spawn((
+                Sprite {
                     color,
                     custom_size,
                     ..default()
                 },
-                transform: Transform::from_xyz(x, y, 0.),
-                ..default()
-            });
+                Transform::from_xyz(x, y, 0.),
+            ));
         }
     }
 }

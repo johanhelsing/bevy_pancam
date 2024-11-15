@@ -30,8 +30,10 @@ App::new()
 Add the component to an orthographic camera:
 
 ```rust ignore
-commands.spawn(Camera2dBundle::default())
-    .insert(PanCam::default());
+commands.spawn((
+    Camera2d,
+    PanCam::default(),
+))
 ```
 
 This is enough to get going with sensible defaults.
@@ -39,8 +41,9 @@ This is enough to get going with sensible defaults.
 Alternatively, set the fields of the `PanCam` component to customize behavior:
 
 ```rust ignore
-commands.spawn(Camera2dBundle::default())
-    .insert(PanCam {
+commands.spawn((
+    Camera2d,
+    PanCam {
         grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
         move_keys: DirectionKeys {      // the keyboard buttons used to move the camera
             up:    vec![KeyCode::KeyQ], // initalize the struct like this or use the provided methods for
@@ -52,8 +55,13 @@ commands.spawn(Camera2dBundle::default())
         enabled: true, // when false, controls are disabled. See toggle example.
         zoom_to_cursor: true, // whether to zoom towards the mouse or the center of the screen
         min_scale: 1., // prevent the camera from zooming too far in
-        max_scale: Some(40.), // prevent the camera from zooming too far out
-    });
+        max_scale: 40., // prevent the camera from zooming too far out
+        min_x: f32::NEG_INFINITY, // minimum x position of the camera window
+        max_x: f32::INFINITY, // maximum x position of the camera window
+        min_y: f32::NEG_INFINITY, // minimum y position of the camera window
+        max_y: f32::INFINITY, // maximum y position of the camera window
+    },
+));
 ```
 
 See the [`simple`](./examples/simple.rs) and [`toggle`](./examples/toggle.rs) examples.

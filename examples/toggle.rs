@@ -4,14 +4,14 @@ use rand::prelude::random;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PanCamPlugin::default()))
+        .add_plugins((DefaultPlugins, PanCamPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, toggle_key)
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera2dBundle::default(), PanCam::default()));
+    commands.spawn((Camera2d, PanCam::default()));
 
     let n = 20;
     let spacing = 50.;
@@ -22,15 +22,14 @@ fn setup(mut commands: Commands) {
             let x = x as f32 * spacing - offset;
             let y = y as f32 * spacing - offset;
             let color = Color::hsl(240., random::<f32>() * 0.3, random::<f32>() * 0.3);
-            commands.spawn(SpriteBundle {
-                sprite: Sprite {
+            commands.spawn((
+                Sprite {
                     color,
                     custom_size,
                     ..default()
                 },
-                transform: Transform::from_xyz(x, y, 0.),
-                ..default()
-            });
+                Transform::from_xyz(x, y, 0.),
+            ));
         }
     }
 }
