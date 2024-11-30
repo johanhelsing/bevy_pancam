@@ -438,7 +438,7 @@ mod tests {
 
     /// Simple mock function to construct a square projection from a window size
     fn mock_proj(window_size: Vec2) -> OrthographicProjection {
-        let mut proj = Camera2dBundle::default().projection;
+        let mut proj = OrthographicProjection::default_2d();
         proj.update(window_size.x, window_size.y);
         proj
     }
