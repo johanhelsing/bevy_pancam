@@ -11,7 +11,9 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     let mut ortho = OrthographicProjection::default_2d();
-    ortho.scaling_mode = ScalingMode::FixedVertical { viewport_height: 10.0 };
+    ortho.scaling_mode = ScalingMode::FixedVertical {
+        viewport_height: 10.0,
+    };
 
     commands.spawn((
         Camera2d,

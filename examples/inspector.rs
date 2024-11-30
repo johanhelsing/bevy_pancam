@@ -5,11 +5,7 @@ use rand::random;
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins,
-            PanCamPlugin,
-            WorldInspectorPlugin::new(),
-        ))
+        .add_plugins((DefaultPlugins, PanCamPlugin, WorldInspectorPlugin::new()))
         .add_systems(Startup, setup)
         .run();
 }
