@@ -330,6 +330,7 @@ fn do_camera_movement(
 /// A component that adds panning camera controls to an orthographic camera
 #[derive(Component, Reflect)]
 #[reflect(Component)]
+#[require(Camera2d)]
 pub struct PanCam {
     /// The mouse buttons that will be used to drag and pan the camera
     pub grab_buttons: Vec<MouseButton>,
