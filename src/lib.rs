@@ -310,7 +310,7 @@ fn do_camera_movement(
         let direction = pan_cam.move_keys.direction(&keyboard_buttons);
 
         let keyboard_delta =
-            time.delta_seconds() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
+            time.delta_secs() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
         let delta = mouse_delta - keyboard_delta;
 
         if delta == Vec2::ZERO {
@@ -330,6 +330,7 @@ fn do_camera_movement(
 /// A component that adds panning camera controls to an orthographic camera
 #[derive(Component, Reflect)]
 #[reflect(Component)]
+#[require(Camera2d)]
 pub struct PanCam {
     /// The mouse buttons that will be used to drag and pan the camera
     pub grab_buttons: Vec<MouseButton>,
@@ -437,7 +438,7 @@ mod tests {
 
     /// Simple mock function to construct a square projection from a window size
     fn mock_proj(window_size: Vec2) -> OrthographicProjection {
-        let mut proj = Camera2dBundle::default().projection;
+        let mut proj = OrthographicProjection::default_2d();
         proj.update(window_size.x, window_size.y);
         proj
     }
