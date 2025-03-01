@@ -38,22 +38,13 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         LeftPanel,
         TargetCamera(left_panel_camera),
-        Interaction::default(),
         Node {
             width: Val::Percent(100.),
             height: Val::Percent(100.),
             ..default()
         },
-    )).with_children(|parent| {
-        parent.spawn((
-            Node {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                ..default()
-            },
-            Text::new("In this example, the pattern of squares on the right will always fill 80% of the window, keeping its aspect ratio, even as the window resizes."),
-        ));
-    });
+        Text::new("In this example, the pattern of squares on the right will always fill 80% of the window, keeping its aspect ratio, even as the window resizes."),
+    ));
 
     commands.spawn((
         RightCamera,
