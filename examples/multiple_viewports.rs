@@ -11,6 +11,9 @@ use rand::prelude::random;
 struct LeftCamera;
 
 #[derive(Component)]
+struct LeftPanel;
+
+#[derive(Component)]
 #[require(Camera2d)]
 struct RightCamera;
 
@@ -24,7 +27,7 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     // left camera is fixed, draws some simple GUI.
-    let panel_camera = commands.spawn((
+    let left_panel_camera = commands.spawn((
         LeftCamera,
         Camera {
             order: 0,
@@ -33,22 +36,22 @@ fn setup(mut commands: Commands) {
         Transform::from_xyz(-10000., -10000., 0.),
     )).id();
     commands.spawn((
-        TargetCamera(panel_camera),
+        LeftPanel,
+        TargetCamera(left_panel_camera),
+        Interaction::default(),
         Node {
             width: Val::Percent(100.),
             height: Val::Percent(100.),
             ..default()
         },
     )).with_children(|parent| {
-        // just for now, let's fill the whole panel with a background color.
-        // TODO: add some, like, explainer text in here to say some things to try out.
         parent.spawn((
             Node {
                 width: Val::Percent(100.),
                 height: Val::Percent(100.),
                 ..default()
             },
-            BackgroundColor(Color::srgb(0.4, 0.2, 0.7)),
+            Text::new("In this example, the pattern of squares on the right will always fill 80% of the window, keeping its aspect ratio, even as the window resizes."),
         ));
     });
 
@@ -96,7 +99,6 @@ fn setup(mut commands: Commands) {
         }
     }
 }
-
 
 fn reset_viewports(
     windows: Query<&Window>,
