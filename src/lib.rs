@@ -108,7 +108,10 @@ impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (do_camera_movement, do_camera_zoom).in_set(PanCamSystemSet),
+            (
+                (do_camera_movement, do_camera_zoom),
+                do_clamp_bounds.run_if(on_event::<PanCamForceUpdateEvent>),
+            ).chain().in_set(PanCamSystemSet),
         )
         .add_event::<PanCamForceUpdateEvent>()
         .register_type::<PanCam>()
@@ -155,15 +158,11 @@ fn do_camera_zoom(
     )>,
     scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
-    mut force_event: EventReader<PanCamForceUpdateEvent>,
 ) {
-    // allow forcing the update, in case something has changed externally that should make us clamp.
-    let force = if force_event.is_empty() { false } else { force_event.clear(); true };
-
     const ZOOM_SENSITIVITY: f32 = 0.001;
 
     let scroll_offset = scroll_offset_from_events(scroll_events);
-    if scroll_offset == 0. && !force {
+    if scroll_offset == 0. {
         return;
     }
 
@@ -288,11 +287,7 @@ fn do_camera_movement(
     mut query: Query<(&PanCam, &Camera, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
     time: Res<Time>,
-    mut force_event: EventReader<PanCamForceUpdateEvent>,
 ) {
-    // allow forcing the update, in case something has changed externally that should make us clamp.
-    let force = if force_event.is_empty() { false } else { force_event.clear(); true };
-
     let Ok(window) = primary_window.get_single() else {
         return;
     };
@@ -300,10 +295,9 @@ fn do_camera_movement(
 
     // Use position instead of MouseMotion, otherwise we don't get acceleration
     // movement
-    let current_pos = match (window.cursor_position(), *last_pos, force) {
-        (Some(c), _, _) => vec2(c.x, -c.y),
-        (None, Some(c), true) => c,
-        _ => return,
+    let current_pos = match window.cursor_position() {
+        Some(c) => vec2(c.x, -c.y),
+        None => return,
     };
     let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
@@ -331,7 +325,7 @@ fn do_camera_movement(
             time.delta_secs() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
         let delta = mouse_delta - keyboard_delta;
 
-        if delta == Vec2::ZERO && !force {
+        if delta == Vec2::ZERO {
             continue;
         }
 
@@ -343,6 +337,23 @@ fn do_camera_movement(
                 .extend(transform.translation.z);
     }
     *last_pos = Some(current_pos);
+}
+
+fn do_clamp_bounds(
+    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
+) {
+    for (pan_cam, mut transform, projection) in &mut query {
+        if !pan_cam.enabled {
+            continue;
+        }
+
+        let proj_area_size = projection.area.size();
+        let proposed_cam_pos = transform.translation.truncate();
+
+        transform.translation =
+            clamp_to_safe_zone(proposed_cam_pos, pan_cam.aabb(), proj_area_size)
+                .extend(transform.translation.z);
+    }
 }
 
 /// A component that adds panning camera controls to an orthographic camera
