@@ -21,13 +21,10 @@ pub struct PanCamPlugin;
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
 pub struct PanCamSystemSet;
 
-/// Event that requests the camera to update without a mouse or keyboard event triggering it.
-///
-/// Intended for situations where PanCam is configured with limits on zoom and/or bounds, and those
-/// limits (or the projection itself) have just been changed by an external source that might have
-/// caused the current viewport to start violating them.
+/// Event raised when an external trigger (i.e., something other than the player's input) might have
+/// invalidated the configured limits on camera bounds.
 #[derive(Event)]
-pub struct PanCamForceUpdateEvent;
+pub struct PanCamHintClampBoundsEvent;
 
 /// Which keys move the camera in particular directions for keyboard movement
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
@@ -110,10 +107,10 @@ impl Plugin for PanCamPlugin {
             Update,
             (
                 (do_camera_movement, do_camera_zoom),
-                do_clamp_bounds.run_if(on_event::<PanCamForceUpdateEvent>),
+                do_clamp_bounds.run_if(on_event::<PanCamHintClampBoundsEvent>),
             ).chain().in_set(PanCamSystemSet),
         )
-        .add_event::<PanCamForceUpdateEvent>()
+        .add_event::<PanCamHintClampBoundsEvent>()
         .register_type::<PanCam>()
         .register_type::<DirectionKeys>();
 

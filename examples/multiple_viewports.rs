@@ -3,7 +3,7 @@ use bevy::{
     render::camera::{ScalingMode, Viewport},
     window::WindowResized,
 };
-use bevy_pancam::{PanCam, PanCamForceUpdateEvent, PanCamPlugin};
+use bevy_pancam::{PanCam, PanCamHintClampBoundsEvent, PanCamPlugin};
 use rand::prelude::random;
 
 #[derive(Component)]
@@ -103,7 +103,7 @@ fn reset_viewports(
     mut resize_events: EventReader<WindowResized>,
     mut left_camera: Query<&mut Camera, (With<LeftCamera>, Without<RightCamera>)>,
     mut right_camera: Query<&mut Camera, (Without<LeftCamera>, With<RightCamera>)>,
-    mut force_update: EventWriter<PanCamForceUpdateEvent>,
+    mut force_update: EventWriter<PanCamHintClampBoundsEvent>,
 ) {
     let mut l = left_camera.single_mut();
     let mut r = right_camera.single_mut();
@@ -125,6 +125,6 @@ fn reset_viewports(
 
         // for this kind of thing to work properly, bevy_pancam needs to know to recalculate its
         // bounds / zoom clamping: resizing the window might have moved the camera out of bounds.
-        force_update.send(PanCamForceUpdateEvent);
+        force_update.send(PanCamHintClampBoundsEvent);
     }
 }
