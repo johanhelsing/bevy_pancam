@@ -21,6 +21,14 @@ pub struct PanCamPlugin;
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
 pub struct PanCamSystemSet;
 
+/// Event that requests the camera to update without a mouse or keyboard event triggering it.
+///
+/// Intended for situations where PanCam is configured with limits on zoom and/or bounds, and those
+/// limits (or the projection itself) have just been changed by an external source that might have
+/// caused the current viewport to start violating them.
+#[derive(Event)]
+pub struct PanCamForceUpdateEvent;
+
 /// Which keys move the camera in particular directions for keyboard movement
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
 pub struct DirectionKeys {
@@ -102,6 +110,7 @@ impl Plugin for PanCamPlugin {
             Update,
             (do_camera_movement, do_camera_zoom).in_set(PanCamSystemSet),
         )
+        .add_event::<PanCamForceUpdateEvent>()
         .register_type::<PanCam>()
         .register_type::<DirectionKeys>();
 
@@ -146,11 +155,15 @@ fn do_camera_zoom(
     )>,
     scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
+    mut force_event: EventReader<PanCamForceUpdateEvent>,
 ) {
+    // allow forcing the update, in case something has changed externally that should make us clamp.
+    let force = if force_event.is_empty() { false } else { force_event.clear(); true };
+
     const ZOOM_SENSITIVITY: f32 = 0.001;
 
     let scroll_offset = scroll_offset_from_events(scroll_events);
-    if scroll_offset == 0. {
+    if scroll_offset == 0. && !force {
         return;
     }
 
@@ -275,7 +288,11 @@ fn do_camera_movement(
     mut query: Query<(&PanCam, &Camera, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
     time: Res<Time>,
+    mut force_event: EventReader<PanCamForceUpdateEvent>,
 ) {
+    // allow forcing the update, in case something has changed externally that should make us clamp.
+    let force = if force_event.is_empty() { false } else { force_event.clear(); true };
+
     let Ok(window) = primary_window.get_single() else {
         return;
     };
@@ -283,9 +300,10 @@ fn do_camera_movement(
 
     // Use position instead of MouseMotion, otherwise we don't get acceleration
     // movement
-    let current_pos = match window.cursor_position() {
-        Some(c) => vec2(c.x, -c.y),
-        None => return,
+    let current_pos = match (window.cursor_position(), *last_pos, force) {
+        (Some(c), _, _) => vec2(c.x, -c.y),
+        (None, Some(c), true) => c,
+        _ => return,
     };
     let delta_device_pixels = current_pos - last_pos.unwrap_or(current_pos);
 
@@ -313,7 +331,7 @@ fn do_camera_movement(
             time.delta_secs() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
         let delta = mouse_delta - keyboard_delta;
 
-        if delta == Vec2::ZERO {
+        if delta == Vec2::ZERO && !force {
             continue;
         }
 
