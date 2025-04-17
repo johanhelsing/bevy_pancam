@@ -274,7 +274,7 @@ fn do_camera_movement(
     keyboard_buttons: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&PanCam, &Camera, &mut Transform, &OrthographicProjection)>,
     mut last_pos: Local<Option<Vec2>>,
-    time: Res<Time>,
+    time: Res<Time<Real>>,
 ) {
     let Ok(window) = primary_window.get_single() else {
         return;
