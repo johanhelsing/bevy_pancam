@@ -10,14 +10,14 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    let mut ortho = OrthographicProjection::default_2d();
-    ortho.scaling_mode = ScalingMode::FixedVertical {
-        viewport_height: 10.0,
-    };
-
     commands.spawn((
         Camera2d,
-        ortho,
+        Projection::Orthographic(OrthographicProjection {
+            scaling_mode: ScalingMode::FixedVertical {
+                viewport_height: 10.0,
+            },
+            ..OrthographicProjection::default_2d()
+        }),
         PanCam {
             min_x: -10.,
             max_x: 10.,
