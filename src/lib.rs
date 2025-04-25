@@ -21,10 +21,9 @@ pub struct PanCamPlugin;
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
 pub struct PanCamSystemSet;
 
-/// Event raised when an external trigger (i.e., something other than the player's input) might have
-/// invalidated the configured limits on camera bounds.
+/// Triggered when the camera should clamp its bounds
 #[derive(Event)]
-pub struct PanCamHintClampBoundsEvent;
+pub struct PanCamClampBounds;
 
 /// Which keys move the camera in particular directions for keyboard movement
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
@@ -105,14 +104,9 @@ impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
-                (do_camera_movement, do_camera_zoom),
-                do_clamp_bounds.run_if(on_event::<PanCamHintClampBoundsEvent>),
-            )
-                .chain()
-                .in_set(PanCamSystemSet),
+            (do_camera_movement, do_camera_zoom).in_set(PanCamSystemSet),
         )
-        .add_event::<PanCamHintClampBoundsEvent>()
+        .add_observer(on_clamp_bounds)
         .register_type::<PanCam>()
         .register_type::<DirectionKeys>();
 
@@ -338,10 +332,13 @@ fn do_camera_movement(
     *last_pos = Some(current_pos);
 }
 
-fn do_clamp_bounds(mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>) {
-    for (pan_cam, mut transform, projection) in &mut query {
+fn on_clamp_bounds(
+    trigger: Trigger<PanCamClampBounds>,
+    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
+) {
+    if let Ok((pan_cam, mut transform, projection)) = query.get_mut(trigger.entity()) {
         if !pan_cam.enabled {
-            continue;
+            return;
         }
 
         let proj_area_size = projection.area.size();
@@ -350,6 +347,8 @@ fn do_clamp_bounds(mut query: Query<(&PanCam, &mut Transform, &OrthographicProje
         transform.translation =
             clamp_to_safe_zone(proposed_cam_pos, pan_cam.aabb(), proj_area_size)
                 .extend(transform.translation.z);
+    } else {
+        warn_once!("Tried to clamp bounds for an unsupported entity.");
     }
 }
 

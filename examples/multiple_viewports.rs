@@ -3,7 +3,7 @@ use bevy::{
     render::camera::{ScalingMode, Viewport},
     window::WindowResized,
 };
-use bevy_pancam::{PanCam, PanCamHintClampBoundsEvent, PanCamPlugin};
+use bevy_pancam::{PanCam, PanCamClampBounds, PanCamPlugin};
 use rand::prelude::random;
 
 #[derive(Component)]
@@ -97,11 +97,11 @@ fn reset_viewports(
     windows: Query<&Window>,
     mut resize_events: EventReader<WindowResized>,
     mut left_camera: Query<&mut Camera, (With<LeftCamera>, Without<RightCamera>)>,
-    mut right_camera: Query<&mut Camera, (Without<LeftCamera>, With<RightCamera>)>,
-    mut force_update: EventWriter<PanCamHintClampBoundsEvent>,
+    mut right_camera: Query<(Entity, &mut Camera), (Without<LeftCamera>, With<RightCamera>)>,
+    mut commands: Commands,
 ) {
     let mut l = left_camera.single_mut();
-    let mut r = right_camera.single_mut();
+    let (r_entity, mut r) = right_camera.single_mut();
     for resize_event in resize_events.read() {
         let window = windows.get(resize_event.window).unwrap();
         let size = window.physical_size();
@@ -121,8 +121,8 @@ fn reset_viewports(
             ..default()
         });
 
-        // for this kind of thing to work properly, bevy_pancam needs to know to recalculate its
-        // bounds / zoom clamping: resizing the window might have moved the camera out of bounds.
-        force_update.send(PanCamHintClampBoundsEvent);
+        // for this kind of thing to work properly, we must manually trigger bevy_pancam to clamp
+        // the bounds, since it only does this automatically when it's the one to move them.
+        commands.trigger_targets(PanCamClampBounds, r_entity);
     }
 }
