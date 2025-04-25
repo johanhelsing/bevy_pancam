@@ -21,7 +21,7 @@ pub struct PanCamPlugin;
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
 pub struct PanCamSystemSet;
 
-/// Triggered when the camera should clamp its bounds
+/// Trigger this event after changing the camera bounds potentially outside the safe zone.
 #[derive(Event)]
 pub struct PanCamClampBounds;
 
