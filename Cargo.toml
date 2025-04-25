@@ -13,11 +13,11 @@ version = "0.17.0"
 bevy_egui = ["dep:bevy_egui"]
 
 [dependencies]
-bevy = { version = "0.16.0-rc", features = ["bevy_window", "bevy_core_pipeline"], default-features = false }
-bevy_egui = { git = "https://github.com/mvlabat/bevy_egui", optional = true, default-features = false }
+bevy = { version = "0.16", features = ["bevy_window", "bevy_core_pipeline"], default-features = false }
+bevy_egui = { version = "0.33", optional = true, default-features = false }
 
 [dev-dependencies]
-bevy = { version = "0.16.0-rc", default-features = false, features = [
+bevy = { version = "0.16", default-features = false, features = [
   "bevy_render",
   "bevy_asset",
   "bevy_sprite",
@@ -26,7 +26,7 @@ bevy = { version = "0.16.0-rc", default-features = false, features = [
   "x11", # github actions runners don't have libxkbcommon installed, so can't use wayland
 ] }
 bevy-inspector-egui = { git = "https://github.com/slyedoc/bevy-inspector-egui", branch = "bevy_0.16", default-features = false, features = ["bevy_render"] }
-bevy_egui = { git = "https://github.com/mvlabat/bevy_egui", default-features = false, features = ["default_fonts"] }
+bevy_egui = { version = "0.33", default-features = false, features = ["default_fonts"] }
 rand = "0.8"
 
 [[example]]
