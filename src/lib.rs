@@ -108,7 +108,9 @@ impl Plugin for PanCamPlugin {
             (
                 (do_camera_movement, do_camera_zoom),
                 do_clamp_bounds.run_if(on_event::<PanCamHintClampBoundsEvent>),
-            ).chain().in_set(PanCamSystemSet),
+            )
+                .chain()
+                .in_set(PanCamSystemSet),
         )
         .add_event::<PanCamHintClampBoundsEvent>()
         .register_type::<PanCam>()
@@ -336,9 +338,7 @@ fn do_camera_movement(
     *last_pos = Some(current_pos);
 }
 
-fn do_clamp_bounds(
-    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
-) {
+fn do_clamp_bounds(mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>) {
     for (pan_cam, mut transform, projection) in &mut query {
         if !pan_cam.enabled {
             continue;

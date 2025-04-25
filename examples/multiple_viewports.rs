@@ -27,14 +27,16 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     // left camera is fixed, draws some simple GUI.
-    let left_panel_camera = commands.spawn((
-        LeftCamera,
-        Camera {
-            order: 0,
-            ..default()
-        },
-        Transform::from_xyz(-10000., -10000., 0.),
-    )).id();
+    let left_panel_camera = commands
+        .spawn((
+            LeftCamera,
+            Camera {
+                order: 0,
+                ..default()
+            },
+            Transform::from_xyz(-10000., -10000., 0.),
+        ))
+        .id();
     commands.spawn((
         LeftPanel,
         TargetCamera(left_panel_camera),
@@ -112,7 +114,10 @@ fn reset_viewports(
 
         r.viewport = Some(Viewport {
             physical_position: UVec2 { x: sep, y: 0 },
-            physical_size: UVec2 { x: size.x - sep, y: size.y },
+            physical_size: UVec2 {
+                x: size.x - sep,
+                y: size.y,
+            },
             ..default()
         });
 
