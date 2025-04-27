@@ -158,7 +158,7 @@ fn do_camera_zoom(
             continue;
         }
 
-        let mut proj = match &mut *proj {
+        let proj = match &mut *proj {
             Projection::Orthographic(proj) => proj,
             _ => continue,
         };
@@ -169,7 +169,7 @@ fn do_camera_zoom(
         proj.scale *= 1. - scroll_offset * ZOOM_SENSITIVITY;
 
         constrain_proj_scale(
-            &mut proj,
+            proj,
             pan_cam.rect().size(),
             &pan_cam.scale_range(),
             view_size,
