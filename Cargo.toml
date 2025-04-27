@@ -27,7 +27,7 @@ bevy = { version = "0.16", default-features = false, features = [
 ] }
 bevy-inspector-egui = { version = "0.31", default-features = false, features = ["bevy_render"] }
 bevy_egui = { version = "0.34", default-features = false, features = ["default_fonts"] }
-rand = "0.8"
+rand = "0.9"
 
 [[example]]
 name = "egui"
