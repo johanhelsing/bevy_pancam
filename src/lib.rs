@@ -4,8 +4,9 @@
 use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
     math::{
+        Rect,
         bounding::{Aabb2d, BoundingVolume},
-        vec2, Rect,
+        vec2,
     },
     prelude::*,
     render::camera::CameraProjection,
@@ -435,8 +436,6 @@ impl Default for PanCam {
 
 #[cfg(test)]
 mod tests {
-    use std::f32::INFINITY;
-
     use bevy::prelude::OrthographicProjection;
 
     use super::*;
@@ -453,7 +452,7 @@ mod tests {
         let window_size = vec2(100., 100.);
         let proj = mock_proj(window_size);
         assert_eq!(
-            max_scale_within_bounds(vec2(100., INFINITY), &proj, window_size).x,
+            max_scale_within_bounds(vec2(100., f32::INFINITY), &proj, window_size).x,
             1.
         );
     }
@@ -464,7 +463,7 @@ mod tests {
         let window_size = vec2(100., 100.);
         let proj = mock_proj(window_size);
         assert_eq!(
-            max_scale_within_bounds(vec2(50., INFINITY), &proj, window_size).x,
+            max_scale_within_bounds(vec2(50., f32::INFINITY), &proj, window_size).x,
             0.5
         );
     }
@@ -475,7 +474,7 @@ mod tests {
         let window_size = vec2(100., 100.);
         let proj = mock_proj(window_size);
         assert_eq!(
-            max_scale_within_bounds(vec2(200., INFINITY), &proj, window_size).x,
+            max_scale_within_bounds(vec2(200., f32::INFINITY), &proj, window_size).x,
             2.
         );
     }
@@ -485,7 +484,7 @@ mod tests {
         let window_size = vec2(100., 100.);
         let proj = mock_proj(window_size);
         assert_eq!(
-            max_scale_within_bounds(vec2(INFINITY, 100.), &proj, window_size).y,
+            max_scale_within_bounds(vec2(f32::INFINITY, 100.), &proj, window_size).y,
             1.
         );
     }
@@ -496,7 +495,7 @@ mod tests {
         let window_size = vec2(100., 100.);
         let proj = mock_proj(window_size);
         assert_eq!(
-            max_scale_within_bounds(vec2(INFINITY, 50.), &proj, window_size).y,
+            max_scale_within_bounds(vec2(f32::INFINITY, 50.), &proj, window_size).y,
             0.5
         );
     }
@@ -507,7 +506,7 @@ mod tests {
         let window_size = vec2(100., 100.);
         let proj = mock_proj(window_size);
         assert_eq!(
-            max_scale_within_bounds(vec2(INFINITY, 200.), &proj, window_size).y,
+            max_scale_within_bounds(vec2(f32::INFINITY, 200.), &proj, window_size).y,
             2.
         );
     }
