@@ -4,8 +4,9 @@
 use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
     math::{
+        Rect,
         bounding::{Aabb2d, BoundingVolume},
-        vec2, Rect,
+        vec2,
     },
     prelude::*,
     render::camera::CameraProjection,
@@ -138,12 +139,7 @@ fn check_egui_wants_focus(
 }
 
 fn do_camera_zoom(
-    mut query: Query<(
-        &PanCam,
-        &Camera,
-        &mut OrthographicProjection,
-        &mut Transform,
-    )>,
+    mut query: Query<(&PanCam, &Camera, &mut Projection, &mut Transform)>,
     scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
@@ -154,7 +150,7 @@ fn do_camera_zoom(
         return;
     }
 
-    let Ok(window) = primary_window.get_single() else {
+    let Ok(window) = primary_window.single() else {
         return;
     };
 
@@ -163,13 +159,18 @@ fn do_camera_zoom(
             continue;
         }
 
+        let proj = match &mut *proj {
+            Projection::Orthographic(proj) => proj,
+            _ => continue,
+        };
+
         let view_size = camera.logical_viewport_size().unwrap_or(window.size());
 
         let old_scale = proj.scale;
         proj.scale *= 1. - scroll_offset * ZOOM_SENSITIVITY;
 
         constrain_proj_scale(
-            &mut proj,
+            proj,
             pan_cam.rect().size(),
             &pan_cam.scale_range(),
             view_size,
@@ -272,11 +273,11 @@ fn do_camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     keyboard_buttons: Res<ButtonInput<KeyCode>>,
-    mut query: Query<(&PanCam, &Camera, &mut Transform, &OrthographicProjection)>,
+    mut query: Query<(&PanCam, &Camera, &mut Transform, &Projection)>,
     mut last_pos: Local<Option<Vec2>>,
     time: Res<Time<Real>>,
 ) {
-    let Ok(window) = primary_window.get_single() else {
+    let Ok(window) = primary_window.single() else {
         return;
     };
     let window_size = window.size();
@@ -293,6 +294,11 @@ fn do_camera_movement(
         if !pan_cam.enabled {
             continue;
         }
+
+        let projection = match projection {
+            Projection::Orthographic(proj) => proj,
+            _ => continue,
+        };
 
         let proj_area_size = projection.area.size();
 

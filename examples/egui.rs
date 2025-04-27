@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{self, ScrollArea},
     EguiContexts, EguiPlugin,
+    egui::{self, ScrollArea},
 };
 use bevy_pancam::{PanCam, PanCamPlugin};
 use rand::random;

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_pancam::{PanCam, PanCamPlugin};
-use rand::prelude::random;
+use rand::random;
 
 fn main() {
     App::new()
