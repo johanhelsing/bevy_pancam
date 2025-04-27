@@ -4,8 +4,9 @@
 use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
     math::{
+        Rect,
         bounding::{Aabb2d, BoundingVolume},
-        vec2, Rect,
+        vec2,
     },
     prelude::*,
     render::camera::CameraProjection,
