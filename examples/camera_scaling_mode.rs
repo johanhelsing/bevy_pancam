@@ -1,6 +1,6 @@
 use bevy::{prelude::*, render::camera::ScalingMode};
 use bevy_pancam::{PanCam, PanCamPlugin};
-use rand::prelude::random;
+use rand::random;
 
 fn main() {
     App::new()
@@ -10,14 +10,14 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    let mut ortho = OrthographicProjection::default_2d();
-    ortho.scaling_mode = ScalingMode::FixedVertical {
+    let mut ortho_scaling_mode = OrthographicProjection::default_2d();
+    ortho_scaling_mode.scaling_mode = ScalingMode::FixedVertical {
         viewport_height: 10.0,
     };
 
     commands.spawn((
         Camera2d,
-        ortho,
+        Projection::Orthographic(ortho_scaling_mode),
         PanCam {
             min_x: -10.,
             max_x: 10.,
