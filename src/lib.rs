@@ -22,6 +22,10 @@ pub struct PanCamPlugin;
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
 pub struct PanCamSystemSet;
 
+/// Trigger this event after changing the camera bounds potentially outside the safe zone.
+#[derive(Event)]
+pub struct PanCamClampBounds;
+
 /// Which keys move the camera in particular directions for keyboard movement
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
 pub struct DirectionKeys {
@@ -103,6 +107,7 @@ impl Plugin for PanCamPlugin {
             Update,
             (do_camera_movement, do_camera_zoom).in_set(PanCamSystemSet),
         )
+        .add_observer(on_clamp_bounds)
         .register_type::<PanCam>()
         .register_type::<DirectionKeys>();
 
@@ -331,6 +336,26 @@ fn do_camera_movement(
                 .extend(transform.translation.z);
     }
     *last_pos = Some(current_pos);
+}
+
+fn on_clamp_bounds(
+    trigger: Trigger<PanCamClampBounds>,
+    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
+) {
+    if let Ok((pan_cam, mut transform, projection)) = query.get_mut(trigger.entity()) {
+        if !pan_cam.enabled {
+            return;
+        }
+
+        let proj_area_size = projection.area.size();
+        let proposed_cam_pos = transform.translation.truncate();
+
+        transform.translation =
+            clamp_to_safe_zone(proposed_cam_pos, pan_cam.aabb(), proj_area_size)
+                .extend(transform.translation.z);
+    } else {
+        warn_once!("Tried to clamp bounds for an unsupported entity.");
+    }
 }
 
 /// A component that adds panning camera controls to an orthographic camera
