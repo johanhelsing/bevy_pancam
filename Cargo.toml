@@ -2,7 +2,7 @@
 authors = ["Johan Helsing <johanhelsing@gmail.com>"]
 categories = ["game-development"]
 description = "A camera that allows panning by dragging with the mouse"
-edition = "2021"
+edition = "2024"
 keywords = ["gamedev", "bevy"]
 license = "MIT OR Apache-2.0"
 name = "bevy_pancam"
