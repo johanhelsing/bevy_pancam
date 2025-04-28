@@ -340,9 +340,11 @@ fn do_camera_movement(
 
 fn on_clamp_bounds(
     trigger: Trigger<PanCamClampBounds>,
-    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
+    mut query: Query<(&PanCam, &mut Transform, &Projection)>,
 ) {
-    if let Ok((pan_cam, mut transform, projection)) = query.get_mut(trigger.entity()) {
+    if let Ok((pan_cam, mut transform, Projection::Orthographic(projection))) =
+        query.get_mut(trigger.target())
+    {
         if !pan_cam.enabled {
             return;
         }

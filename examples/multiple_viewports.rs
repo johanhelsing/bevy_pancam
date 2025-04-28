@@ -4,7 +4,7 @@ use bevy::{
     window::WindowResized,
 };
 use bevy_pancam::{PanCam, PanCamClampBounds, PanCamPlugin};
-use rand::prelude::random;
+use rand::random;
 
 #[derive(Component)]
 #[require(Camera2d)]
@@ -39,7 +39,7 @@ fn setup(mut commands: Commands) {
         .id();
     commands.spawn((
         LeftPanel,
-        TargetCamera(left_panel_camera),
+        UiTargetCamera(left_panel_camera),
         Node {
             width: Val::Percent(100.),
             height: Val::Percent(100.),
@@ -63,13 +63,13 @@ fn setup(mut commands: Commands) {
             ..default()
         },
         // use AutoMax scaling on the projection itself. this MAY only be needed to work around #73.
-        OrthographicProjection {
+        Projection::Orthographic(OrthographicProjection {
             scaling_mode: ScalingMode::AutoMax {
                 max_width: 1000.,
                 max_height: 1000.,
             },
             ..OrthographicProjection::default_2d()
-        },
+        }),
     ));
 
     let n = 20;
@@ -99,11 +99,11 @@ fn reset_viewports(
     mut left_camera: Query<&mut Camera, (With<LeftCamera>, Without<RightCamera>)>,
     mut right_camera: Query<(Entity, &mut Camera), (Without<LeftCamera>, With<RightCamera>)>,
     mut commands: Commands,
-) {
-    let mut l = left_camera.single_mut();
-    let (r_entity, mut r) = right_camera.single_mut();
+) -> Result {
+    let mut l = left_camera.single_mut()?;
+    let (r_entity, mut r) = right_camera.single_mut()?;
     for resize_event in resize_events.read() {
-        let window = windows.get(resize_event.window).unwrap();
+        let window = windows.get(resize_event.window)?;
         let size = window.physical_size();
 
         let sep = (size.x + 4) / 5;
@@ -125,4 +125,6 @@ fn reset_viewports(
         // the bounds, since it only does this automatically when it's the one to move them.
         commands.trigger_targets(PanCamClampBounds, r_entity);
     }
+
+    Ok(())
 }
