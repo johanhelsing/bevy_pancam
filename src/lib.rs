@@ -2,7 +2,10 @@
 #![doc = include_str!("../README.md")]
 
 use bevy::{
-    input::mouse::{MouseScrollUnit, MouseWheel},
+    input::{
+        gestures::PinchGesture,
+        mouse::{MouseScrollUnit, MouseWheel},
+    },
     math::{
         Rect,
         bounding::{Aabb2d, BoundingVolume},
@@ -145,12 +148,16 @@ fn check_egui_wants_focus(
 
 fn do_camera_zoom(
     mut query: Query<(&PanCam, &Camera, &mut Projection, &mut Transform)>,
+    mut pinch_events: EventReader<PinchGesture>,
     scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
+    const PINCH_MULTIPLIER: f32 = 1000.;
     const ZOOM_SENSITIVITY: f32 = 0.001;
 
-    let scroll_offset = scroll_offset_from_events(scroll_events);
+    let pinch_scroll_offset = pinch_events.read().map(|ev| ev.0).sum::<f32>() * PINCH_MULTIPLIER;
+    let wheel_scroll_offset = scroll_offset_from_events(scroll_events);
+    let scroll_offset = pinch_scroll_offset + wheel_scroll_offset;
     if scroll_offset == 0. {
         return;
     }
