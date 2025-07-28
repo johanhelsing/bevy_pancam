@@ -1,11 +1,9 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
+mod normalized_zoom_inputs;
 use bevy::{
-    input::{
-        gestures::PinchGesture,
-        mouse::{MouseScrollUnit, MouseWheel},
-    },
+    input::{gestures::PinchGesture, mouse::MouseWheel},
     math::{
         Rect,
         bounding::{Aabb2d, BoundingVolume},
@@ -15,6 +13,7 @@ use bevy::{
     render::camera::CameraProjection,
     window::PrimaryWindow,
 };
+use normalized_zoom_inputs::NormalizedZoomInputs;
 use std::ops::RangeInclusive;
 
 /// Plugin that adds the necessary systems for `PanCam` components to work
@@ -148,17 +147,12 @@ fn check_egui_wants_focus(
 
 fn do_camera_zoom(
     mut query: Query<(&PanCam, &Camera, &mut Projection, &mut Transform)>,
-    mut pinch_events: EventReader<PinchGesture>,
+    pinch_events: EventReader<PinchGesture>,
     scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
-    const PINCH_MULTIPLIER: f32 = 1000.;
-    const ZOOM_SENSITIVITY: f32 = 0.001;
-
-    let pinch_scroll_offset = pinch_events.read().map(|ev| ev.0).sum::<f32>() * PINCH_MULTIPLIER;
-    let wheel_scroll_offset = scroll_offset_from_events(scroll_events);
-    let scroll_offset = pinch_scroll_offset + wheel_scroll_offset;
-    if scroll_offset == 0. {
+    let zoom_inputs = NormalizedZoomInputs::from_events(scroll_events, pinch_events);
+    if zoom_inputs.is_empty() {
         return;
     }
 
@@ -178,8 +172,12 @@ fn do_camera_zoom(
 
         let view_size = camera.logical_viewport_size().unwrap_or(window.size());
 
-        let old_scale = proj.scale;
-        proj.scale *= 1. - scroll_offset * ZOOM_SENSITIVITY;
+        let prev_scale = proj.scale;
+        let zoom_delta = zoom_inputs.apply_sensitivity(
+            pan_cam.mouse_wheel_sensitivity,
+            pan_cam.pinch_gesture_sensitivity,
+        );
+        proj.scale *= 1. - zoom_delta;
 
         constrain_proj_scale(
             proj,
@@ -207,10 +205,10 @@ fn do_camera_zoom(
             continue;
         };
 
-        let proj_size = proj.area.max / old_scale;
+        let proj_size = proj.area.max / prev_scale;
 
         let cursor_world_pos =
-            transform.translation.truncate() + cursor_normalized_view_pos * proj_size * old_scale;
+            transform.translation.truncate() + cursor_normalized_view_pos * proj_size * prev_scale;
 
         let proposed_cam_pos =
             cursor_world_pos - cursor_normalized_view_pos * proj_size * proj.scale;
@@ -223,19 +221,6 @@ fn do_camera_zoom(
             clamp_to_safe_zone(proposed_cam_pos, pan_cam.aabb(), proj.area.size())
                 .extend(transform.translation.z);
     }
-}
-
-/// Consumes `MouseWheel` event reader and calculates a single scalar,
-/// representing positive or negative scroll offset.
-fn scroll_offset_from_events(mut scroll_events: EventReader<MouseWheel>) -> f32 {
-    let pixels_per_line = 100.; // Maybe make configurable?
-    scroll_events
-        .read()
-        .map(|ev| match ev.unit {
-            MouseScrollUnit::Pixel => ev.y,
-            MouseScrollUnit::Line => ev.y * pixels_per_line,
-        })
-        .sum::<f32>()
 }
 
 /// `max_scale_within_bounds` is used to find the maximum safe zoom out/projection
@@ -422,6 +407,10 @@ pub struct PanCam {
     /// dragging the window, and zooming out. Pass `f32::INFINITY` to disable
     /// clamping.
     pub max_y: f32,
+    /// Adjust the zoom sensitivity of [`MouseWheel`] events.
+    pub mouse_wheel_sensitivity: f32,
+    /// Adjust the zoom sensitivity of [`PinchGesture`] events.
+    pub pinch_gesture_sensitivity: f32,
 }
 
 impl PanCam {
@@ -464,6 +453,8 @@ impl Default for PanCam {
             max_x: f32::INFINITY,
             min_y: f32::NEG_INFINITY,
             max_y: f32::INFINITY,
+            mouse_wheel_sensitivity: 1.,
+            pinch_gesture_sensitivity: 1.,
         }
     }
 }
