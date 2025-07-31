@@ -4,6 +4,8 @@ use bevy::input::{
 };
 use bevy::prelude::*;
 
+use crate::ScrollBehavior;
+
 /// Holds normalized zoom inputs constructed from
 /// raw events.
 #[derive(Debug, Clone, Copy)]
@@ -40,7 +42,16 @@ impl NormalizedZoomInputs {
 
     /// Apply sensitivity scalers to the inputs and return a final zoom delta
     /// to apply.
-    pub(crate) fn apply_sensitivity(&self, wheel_sensitivity: f32, pinch_sensitivity: f32) -> f32 {
+    pub(crate) fn apply_sensitivity(
+        &self,
+        wheel_sensitivity: f32,
+        pinch_sensitivity: f32,
+        scroll_behavior: ScrollBehavior,
+    ) -> f32 {
+        let wheel_sensitivity = match scroll_behavior {
+            ScrollBehavior::Zoom => wheel_sensitivity,
+            _ => 0.,
+        };
         self.pinch * pinch_sensitivity + self.wheel * wheel_sensitivity
     }
 
