@@ -3,7 +3,10 @@
 
 mod normalized_zoom_inputs;
 use bevy::{
-    input::{gestures::PinchGesture, mouse::MouseWheel},
+    input::{
+        gestures::PinchGesture,
+        mouse::{MouseScrollUnit, MouseWheel},
+    },
     math::{
         Rect,
         bounding::{Aabb2d, BoundingVolume},
@@ -103,6 +106,18 @@ impl DirectionKeys {
     }
 }
 
+/// How the camera should respond to scroll events.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
+pub enum ScrollBehavior {
+    /// Scrolling should zoom the camera in and out.
+    Zoom,
+    /// Scrolling should have a pan-like effect, moving the camera.
+    ///
+    /// This should be used in environments where [`PinchGesture`] is the
+    /// preferred method of zooming, such as on a trackpad.
+    Pan,
+}
+
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
@@ -176,6 +191,7 @@ fn do_camera_zoom(
         let zoom_delta = zoom_inputs.apply_sensitivity(
             pan_cam.mouse_wheel_sensitivity,
             pan_cam.pinch_gesture_sensitivity,
+            pan_cam.scroll_behavior,
         );
         proj.scale *= 1. - zoom_delta;
 
@@ -270,6 +286,7 @@ fn do_camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     keyboard_buttons: Res<ButtonInput<KeyCode>>,
+    mut scroll_events: EventReader<MouseWheel>,
     mut query: Query<(&PanCam, &Camera, &mut Transform, &Projection)>,
     mut last_pos: Local<Option<Vec2>>,
     time: Res<Time<Real>>,
@@ -314,7 +331,22 @@ fn do_camera_movement(
 
         let keyboard_delta =
             time.delta_secs() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
-        let delta = mouse_delta - keyboard_delta;
+
+        let mut delta = mouse_delta - keyboard_delta;
+
+        if ScrollBehavior::Pan == pan_cam.scroll_behavior {
+            let pan_delta = scroll_events
+                .read()
+                .map(|ev| match ev.unit {
+                    MouseScrollUnit::Pixel => Vec2::new(-ev.x, ev.y),
+                    MouseScrollUnit::Line => Vec2::new(-ev.x, ev.y) * 100., // Maybe make configurable?
+                })
+                .sum::<Vec2>()
+                * pan_cam.pan_sensitivity
+                * projection.scale;
+
+            delta -= pan_delta;
+        }
 
         if delta == Vec2::ZERO {
             continue;
@@ -411,6 +443,10 @@ pub struct PanCam {
     pub mouse_wheel_sensitivity: f32,
     /// Adjust the zoom sensitivity of [`PinchGesture`] events.
     pub pinch_gesture_sensitivity: f32,
+    /// Adjust the [`ScrollBehavior::Pan`] sensitivity.
+    pub pan_sensitivity: f32,
+    /// Change scroll behavior.
+    pub scroll_behavior: ScrollBehavior,
 }
 
 impl PanCam {
@@ -455,6 +491,8 @@ impl Default for PanCam {
             max_y: f32::INFINITY,
             mouse_wheel_sensitivity: 1.,
             pinch_gesture_sensitivity: 1.,
+            pan_sensitivity: 1.,
+            scroll_behavior: ScrollBehavior::Zoom,
         }
     }
 }
