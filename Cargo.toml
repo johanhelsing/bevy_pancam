@@ -13,11 +13,15 @@ version = "0.18.0"
 bevy_egui = ["dep:bevy_egui"]
 
 [dependencies]
-bevy = { version = "0.16", features = ["bevy_window", "bevy_core_pipeline", "bevy_log"], default-features = false }
+bevy = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy.git", default-features = false, features = [
+	"bevy_window",
+	"bevy_core_pipeline",
+	"bevy_log",
+] }
 bevy_egui = { version = "0.35", optional = true, default-features = false }
 
 [dev-dependencies]
-bevy = { version = "0.16", default-features = false, features = [
+bevy = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy.git", default-features = false, features = [
   "bevy_render",
   "bevy_asset",
   "bevy_sprite",
