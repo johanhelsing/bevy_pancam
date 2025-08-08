@@ -3,6 +3,7 @@
 
 mod normalized_zoom_inputs;
 use bevy::{
+    camera::CameraProjection,
     input::{gestures::PinchGesture, mouse::MouseWheel},
     math::{
         Rect,
@@ -10,7 +11,6 @@ use bevy::{
         vec2,
     },
     prelude::*,
-    render::camera::CameraProjection,
     window::PrimaryWindow,
 };
 use normalized_zoom_inputs::NormalizedZoomInputs;
@@ -25,8 +25,11 @@ pub struct PanCamPlugin;
 pub struct PanCamSystemSet;
 
 /// Trigger this event after changing the camera bounds potentially outside the safe zone.
-#[derive(Event)]
-pub struct PanCamClampBounds;
+#[derive(EntityEvent)]
+pub struct PanCamClampBounds {
+    /// The entity that triggered the event
+    pub entity: Entity,
+}
 
 /// Which keys move the camera in particular directions for keyboard movement
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
@@ -147,8 +150,8 @@ fn check_egui_wants_focus(
 
 fn do_camera_zoom(
     mut query: Query<(&PanCam, &Camera, &mut Projection, &mut Transform)>,
-    pinch_events: EventReader<PinchGesture>,
-    scroll_events: EventReader<MouseWheel>,
+    pinch_events: MessageReader<PinchGesture>,
+    scroll_events: MessageReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
 ) {
     let zoom_inputs = NormalizedZoomInputs::from_events(scroll_events, pinch_events);
@@ -331,11 +334,11 @@ fn do_camera_movement(
 }
 
 fn on_clamp_bounds(
-    trigger: Trigger<PanCamClampBounds>,
+    event: On<PanCamClampBounds>,
     mut query: Query<(&PanCam, &mut Transform, &Projection)>,
 ) {
     if let Ok((pan_cam, mut transform, Projection::Orthographic(projection))) =
-        query.get_mut(trigger.target())
+        query.get_mut(event.observer())
     {
         if !pan_cam.enabled {
             return;

@@ -15,23 +15,22 @@ fn main() {
 }
 
 fn egui_ui(mut contexts: EguiContexts) {
-    if let Ok(ctx) = contexts.ctx_mut() {
-        egui::Window::new("Scroll me")
-            .resizable(false)
-            .show(ctx, |ui| {
-                ScrollArea::vertical().show(ui, |ui| {
-                    ui.add_space(100.);
-                    ui.color_edit_button_rgb(&mut [0., 0., 0.]);
-                    ui.add(egui::Slider::new(&mut 0.0, 0.0..=1.0).step_by(0.001));
-                    ui.checkbox(&mut true, "Test");
-                    ui.vertical(|ui| {
-                        for i in 0..50 {
-                            ui.label(format!("list entry number {i}"));
-                        }
-                    })
-                })
+    egui::Window::new("Scroll me").resizable(false).show(
+        contexts.ctx_mut().expect("Fail to expand context."),
+        |ui| {
+            ScrollArea::vertical().show(ui, |ui| {
+                ui.add_space(100.);
+                ui.color_edit_button_rgb(&mut [0., 0., 0.]);
+                ui.add(egui::Slider::new(&mut 0.0, 0.0..=1.0).step_by(0.001));
+                ui.checkbox(&mut true, "Test");
+                ui.vertical(|ui| {
+                    for i in 0..50 {
+                        ui.label(format!("list entry number {i}"));
+                    }
+                });
             });
-    }
+        },
+    );
 }
 
 fn setup(mut commands: Commands) {

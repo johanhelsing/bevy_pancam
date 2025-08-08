@@ -13,11 +13,11 @@ pub(crate) struct NormalizedZoomInputs {
 }
 
 impl NormalizedZoomInputs {
-    /// Reads [`MouseWheel`] and [`PinchGesture`] [`EventReader`]s, normalizes
+    /// Reads [`MouseWheel`] and [`PinchGesture`] [`MessageReader`]s, normalizes
     /// them, and returns a new [`NormalizedZoomInputs`].
     pub(crate) fn from_events(
-        mut mouse_wheel_events: EventReader<MouseWheel>,
-        mut pinch_gesture_events: EventReader<PinchGesture>,
+        mut mouse_wheel_events: MessageReader<MouseWheel>,
+        mut pinch_gesture_events: MessageReader<PinchGesture>,
     ) -> Self {
         let pinch = pinch_gesture_events.read().map(|ev| ev.0).sum::<f32>();
 
