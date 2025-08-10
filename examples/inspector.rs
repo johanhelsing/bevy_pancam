@@ -1,11 +1,17 @@
 use bevy::prelude::*;
+use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_pancam::{PanCam, PanCamPlugin};
 use rand::random;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PanCamPlugin, WorldInspectorPlugin::new()))
+        .add_plugins((
+            DefaultPlugins,
+            PanCamPlugin,
+            EguiPlugin::default(),
+            WorldInspectorPlugin::new(),
+        ))
         .add_systems(Startup, setup)
         .run();
 }
