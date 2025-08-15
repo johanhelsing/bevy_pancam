@@ -3,7 +3,10 @@
 
 mod normalized_zoom_inputs;
 use bevy::{
-    input::{gestures::PinchGesture, mouse::MouseWheel},
+    input::{
+        gestures::PinchGesture,
+        mouse::{MouseScrollUnit, MouseWheel},
+    },
     math::{
         Rect,
         bounding::{Aabb2d, BoundingVolume},
@@ -103,6 +106,18 @@ impl DirectionKeys {
     }
 }
 
+/// How the camera should respond to scroll events.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
+pub enum ScrollBehavior {
+    /// Scrolling should zoom the camera in and out.
+    Zoom,
+    /// Scrolling should have a pan-like effect, moving the camera.
+    ///
+    /// This should be used in environments where [`PinchGesture`] is the
+    /// preferred method of zooming, such as on a trackpad.
+    Pan,
+}
+
 impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
@@ -150,6 +165,7 @@ fn do_camera_zoom(
     pinch_events: EventReader<PinchGesture>,
     scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
+    keyboard_buttons: Res<ButtonInput<KeyCode>>,
 ) {
     let zoom_inputs = NormalizedZoomInputs::from_events(scroll_events, pinch_events);
     if zoom_inputs.is_empty() {
@@ -176,6 +192,7 @@ fn do_camera_zoom(
         let zoom_delta = zoom_inputs.apply_sensitivity(
             pan_cam.mouse_wheel_sensitivity,
             pan_cam.pinch_gesture_sensitivity,
+            pan_cam.scroll_behavior(&keyboard_buttons),
         );
         proj.scale *= 1. - zoom_delta;
 
@@ -270,6 +287,7 @@ fn do_camera_movement(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     keyboard_buttons: Res<ButtonInput<KeyCode>>,
+    mut scroll_events: EventReader<MouseWheel>,
     mut query: Query<(&PanCam, &Camera, &mut Transform, &Projection)>,
     mut last_pos: Local<Option<Vec2>>,
     time: Res<Time<Real>>,
@@ -314,7 +332,22 @@ fn do_camera_movement(
 
         let keyboard_delta =
             time.delta_secs() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
-        let delta = mouse_delta - keyboard_delta;
+
+        let mut delta = mouse_delta - keyboard_delta;
+
+        if ScrollBehavior::Pan == pan_cam.scroll_behavior(&keyboard_buttons) {
+            let pan_delta = scroll_events
+                .read()
+                .map(|ev| match ev.unit {
+                    MouseScrollUnit::Pixel => Vec2::new(-ev.x, ev.y),
+                    MouseScrollUnit::Line => Vec2::new(-ev.x, ev.y) * 100., // Maybe make configurable?
+                })
+                .sum::<Vec2>()
+                * pan_cam.pan_sensitivity
+                * projection.scale;
+
+            delta -= pan_delta;
+        }
 
         if delta == Vec2::ZERO {
             continue;
@@ -411,6 +444,11 @@ pub struct PanCam {
     pub mouse_wheel_sensitivity: f32,
     /// Adjust the zoom sensitivity of [`PinchGesture`] events.
     pub pinch_gesture_sensitivity: f32,
+    /// Adjust the [`ScrollBehavior::Pan`] sensitivity.
+    pub pan_sensitivity: f32,
+    /// Change the default scroll behavior. This can be overridden to `Zoom` when
+    /// Control / Command key is pressed.
+    pub default_scroll_behavior: ScrollBehavior,
 }
 
 impl PanCam {
@@ -437,6 +475,21 @@ impl PanCam {
     fn scale_range(&self) -> RangeInclusive<f32> {
         self.min_scale..=self.max_scale
     }
+
+    /// Override scroll behavior to be zoom when Control or Super key is pressed.
+    fn scroll_behavior(&self, keyboard_buttons: &Res<ButtonInput<KeyCode>>) -> ScrollBehavior {
+        if self.default_scroll_behavior == ScrollBehavior::Zoom
+            || keyboard_buttons.pressed(KeyCode::ControlLeft)
+            || keyboard_buttons.pressed(KeyCode::ControlRight)
+            || keyboard_buttons.pressed(KeyCode::SuperLeft)
+            || keyboard_buttons.pressed(KeyCode::SuperRight)
+            || keyboard_buttons.pressed(KeyCode::Meta)
+        {
+            ScrollBehavior::Zoom
+        } else {
+            ScrollBehavior::Pan
+        }
+    }
 }
 
 impl Default for PanCam {
@@ -455,6 +508,8 @@ impl Default for PanCam {
             max_y: f32::INFINITY,
             mouse_wheel_sensitivity: 1.,
             pinch_gesture_sensitivity: 1.,
+            pan_sensitivity: 1.,
+            default_scroll_behavior: ScrollBehavior::Zoom,
         }
     }
 }
