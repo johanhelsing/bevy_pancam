@@ -13,7 +13,7 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         Camera2d,
         PanCam {
-            scroll_behavior: ScrollBehavior::Pan,
+            default_scroll_behavior: ScrollBehavior::Pan,
             ..PanCam::default()
         },
     ));

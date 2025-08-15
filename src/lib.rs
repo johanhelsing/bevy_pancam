@@ -165,6 +165,7 @@ fn do_camera_zoom(
     pinch_events: EventReader<PinchGesture>,
     scroll_events: EventReader<MouseWheel>,
     primary_window: Query<&Window, With<PrimaryWindow>>,
+    keyboard_buttons: Res<ButtonInput<KeyCode>>,
 ) {
     let zoom_inputs = NormalizedZoomInputs::from_events(scroll_events, pinch_events);
     if zoom_inputs.is_empty() {
@@ -191,7 +192,7 @@ fn do_camera_zoom(
         let zoom_delta = zoom_inputs.apply_sensitivity(
             pan_cam.mouse_wheel_sensitivity,
             pan_cam.pinch_gesture_sensitivity,
-            pan_cam.scroll_behavior,
+            pan_cam.scroll_behavior(&keyboard_buttons),
         );
         proj.scale *= 1. - zoom_delta;
 
@@ -334,7 +335,7 @@ fn do_camera_movement(
 
         let mut delta = mouse_delta - keyboard_delta;
 
-        if ScrollBehavior::Pan == pan_cam.scroll_behavior {
+        if ScrollBehavior::Pan == pan_cam.scroll_behavior(&keyboard_buttons) {
             let pan_delta = scroll_events
                 .read()
                 .map(|ev| match ev.unit {
@@ -445,8 +446,9 @@ pub struct PanCam {
     pub pinch_gesture_sensitivity: f32,
     /// Adjust the [`ScrollBehavior::Pan`] sensitivity.
     pub pan_sensitivity: f32,
-    /// Change scroll behavior.
-    pub scroll_behavior: ScrollBehavior,
+    /// Change the default scroll behavior. This can be overridden to `Zoom` when
+    /// Control / Command key is pressed.
+    pub default_scroll_behavior: ScrollBehavior,
 }
 
 impl PanCam {
@@ -473,6 +475,21 @@ impl PanCam {
     fn scale_range(&self) -> RangeInclusive<f32> {
         self.min_scale..=self.max_scale
     }
+
+    /// Override scroll behavior to be zoom when Control or Super key is pressed.
+    fn scroll_behavior(&self, keyboard_buttons: &Res<ButtonInput<KeyCode>>) -> ScrollBehavior {
+        if self.default_scroll_behavior == ScrollBehavior::Zoom
+            || keyboard_buttons.pressed(KeyCode::ControlLeft)
+            || keyboard_buttons.pressed(KeyCode::ControlRight)
+            || keyboard_buttons.pressed(KeyCode::SuperLeft)
+            || keyboard_buttons.pressed(KeyCode::SuperRight)
+            || keyboard_buttons.pressed(KeyCode::Meta)
+        {
+            ScrollBehavior::Zoom
+        } else {
+            ScrollBehavior::Pan
+        }
+    }
 }
 
 impl Default for PanCam {
@@ -492,7 +509,7 @@ impl Default for PanCam {
             mouse_wheel_sensitivity: 1.,
             pinch_gesture_sensitivity: 1.,
             pan_sensitivity: 1.,
-            scroll_behavior: ScrollBehavior::Zoom,
+            default_scroll_behavior: ScrollBehavior::Zoom,
         }
     }
 }
