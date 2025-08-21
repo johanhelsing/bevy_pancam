@@ -13,11 +13,15 @@ version = "0.18.0"
 bevy_egui = ["dep:bevy_egui"]
 
 [dependencies]
-bevy = { version = "0.16", features = ["bevy_window", "bevy_core_pipeline", "bevy_log"], default-features = false }
-bevy_egui = { version = "0.35", optional = true, default-features = false }
+bevy = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy.git", default-features = false, features = [
+	"bevy_window",
+	"bevy_core_pipeline",
+	"bevy_log",
+] }
+bevy_egui = { version = "0.37", git = "https://github.com/pindash-io/bevy_egui.git", branch = "bevy-0.17", optional = true, default-features = false }
 
 [dev-dependencies]
-bevy = { version = "0.16", default-features = false, features = [
+bevy = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy.git", default-features = false, features = [
   "bevy_render",
   "bevy_asset",
   "bevy_sprite",
@@ -26,10 +30,11 @@ bevy = { version = "0.16", default-features = false, features = [
   "bevy_ui",
   "default_font",
   "bevy_text",
+  "bevy_window",
   "x11", # github actions runners don't have libxkbcommon installed, so can't use wayland
 ] }
-bevy-inspector-egui = { version = "0.32", default-features = false, features = ["bevy_render"] }
-bevy_egui = { version = "0.35", default-features = false, features = ["default_fonts"] }
+bevy-inspector-egui = { version = "0.34", git = "https://github.com/pindash-io/bevy-inspector-egui.git", branch = "bevy-0.17", default-features = false, features = ["bevy_render"] }
+bevy_egui = { version = "0.37", git = "https://github.com/pindash-io/bevy_egui.git", branch = "bevy-0.17", default-features = false, features = ["default_fonts"] }
 rand = "0.9"
 
 [[example]]

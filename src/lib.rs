@@ -3,6 +3,7 @@
 
 mod normalized_zoom_inputs;
 use bevy::{
+    camera::CameraProjection,
     input::{gestures::PinchGesture, mouse::MouseWheel},
     math::{
         Rect,
@@ -10,7 +11,6 @@ use bevy::{
         vec2,
     },
     prelude::*,
-    render::camera::CameraProjection,
     window::PrimaryWindow,
 };
 use normalized_zoom_inputs::NormalizedZoomInputs;
@@ -25,7 +25,7 @@ pub struct PanCamPlugin;
 pub struct PanCamSystemSet;
 
 /// Trigger this event after changing the camera bounds potentially outside the safe zone.
-#[derive(Event)]
+#[derive(EntityEvent)]
 pub struct PanCamClampBounds;
 
 /// Which keys move the camera in particular directions for keyboard movement
@@ -331,11 +331,11 @@ fn do_camera_movement(
 }
 
 fn on_clamp_bounds(
-    trigger: Trigger<PanCamClampBounds>,
+    event: On<PanCamClampBounds>,
     mut query: Query<(&PanCam, &mut Transform, &Projection)>,
 ) {
     if let Ok((pan_cam, mut transform, Projection::Orthographic(projection))) =
-        query.get_mut(trigger.target())
+        query.get_mut(event.entity())
     {
         if !pan_cam.enabled {
             return;

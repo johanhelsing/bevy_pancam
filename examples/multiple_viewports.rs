@@ -1,6 +1,6 @@
 use bevy::{
+    camera::{ScalingMode, Viewport},
     prelude::*,
-    render::camera::{ScalingMode, Viewport},
     window::WindowResized,
 };
 use bevy_pancam::{PanCam, PanCamClampBounds, PanCamPlugin};
