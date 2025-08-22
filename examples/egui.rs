@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_egui::{
-    EguiContexts, EguiPlugin,
+    EguiContexts, EguiPlugin, EguiPrimaryContextPass,
     egui::{self, ScrollArea},
 };
 use bevy_pancam::{PanCam, PanCamPlugin};
@@ -8,28 +8,30 @@ use rand::random;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PanCamPlugin, EguiPlugin))
-        .add_systems(Update, egui_ui)
+        .add_plugins((DefaultPlugins, PanCamPlugin, EguiPlugin::default()))
+        .add_systems(EguiPrimaryContextPass, egui_ui)
         .add_systems(Startup, setup)
         .run();
 }
 
 fn egui_ui(mut contexts: EguiContexts) {
-    egui::Window::new("Scroll me")
-        .resizable(false)
-        .show(contexts.ctx_mut(), |ui| {
-            ScrollArea::vertical().show(ui, |ui| {
-                ui.add_space(100.);
-                ui.color_edit_button_rgb(&mut [0., 0., 0.]);
-                ui.add(egui::Slider::new(&mut 0.0, 0.0..=1.0).step_by(0.001));
-                ui.checkbox(&mut true, "Test");
-                ui.vertical(|ui| {
-                    for i in 0..50 {
-                        ui.label(format!("list entry number {i}"));
-                    }
+    if let Ok(ctx) = contexts.ctx_mut() {
+        egui::Window::new("Scroll me")
+            .resizable(false)
+            .show(ctx, |ui| {
+                ScrollArea::vertical().show(ui, |ui| {
+                    ui.add_space(100.);
+                    ui.color_edit_button_rgb(&mut [0., 0., 0.]);
+                    ui.add(egui::Slider::new(&mut 0.0, 0.0..=1.0).step_by(0.001));
+                    ui.checkbox(&mut true, "Test");
+                    ui.vertical(|ui| {
+                        for i in 0..50 {
+                            ui.label(format!("list entry number {i}"));
+                        }
+                    })
                 })
-            })
-        });
+            });
+    }
 }
 
 fn setup(mut commands: Commands) {
