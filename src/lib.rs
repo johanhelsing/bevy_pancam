@@ -22,7 +22,7 @@ pub struct PanCamPlugin;
 
 /// System set to allow ordering of `PanCamPlugin`
 #[derive(Debug, Clone, Copy, SystemSet, PartialEq, Eq, Hash)]
-pub struct PanCamSystemSet;
+pub struct PanCamSystems;
 
 /// Trigger this event after changing the camera bounds potentially outside the safe zone.
 #[derive(EntityEvent)]
@@ -110,7 +110,7 @@ impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (do_camera_movement, do_camera_zoom).in_set(PanCamSystemSet),
+            (do_camera_movement, do_camera_zoom).in_set(PanCamSystems),
         )
         .add_observer(on_clamp_bounds)
         .register_type::<PanCam>()
@@ -122,7 +122,7 @@ impl Plugin for PanCamPlugin {
                 .add_systems(PostUpdate, check_egui_wants_focus)
                 .configure_sets(
                     Update,
-                    PanCamSystemSet.run_if(resource_equals(EguiWantsFocus(false))),
+                    PanCamSystems.run_if(resource_equals(EguiWantsFocus(false))),
                 );
         }
     }
