@@ -22,15 +22,11 @@ bevy_egui = { version = "0.37", optional = true, default-features = false }
 
 [dev-dependencies]
 bevy = { version = "0.17", default-features = false, features = [
-  "bevy_render",
   "bevy_asset",
-  "bevy_sprite",
   "bevy_sprite_render",
   "bevy_winit",
-  "bevy_core_pipeline",
   "bevy_ui",
   "default_font",
-  "bevy_text",
   "bevy_window",
   "x11", # github actions runners don't have libxkbcommon installed, so can't use wayland
 ] }
