@@ -14,10 +14,10 @@ fn main() {
         .run();
 }
 
-fn egui_ui(mut contexts: EguiContexts) {
-    egui::Window::new("Scroll me").resizable(false).show(
-        contexts.ctx_mut().expect("Fail to expand context."),
-        |ui| {
+fn egui_ui(mut contexts: EguiContexts) -> Result {
+    egui::Window::new("Scroll me")
+        .resizable(false)
+        .show(contexts.ctx_mut()?, |ui| {
             ScrollArea::vertical().show(ui, |ui| {
                 ui.add_space(100.);
                 ui.color_edit_button_rgb(&mut [0., 0., 0.]);
@@ -29,8 +29,8 @@ fn egui_ui(mut contexts: EguiContexts) {
                     }
                 });
             });
-        },
-    );
+        });
+    Ok(())
 }
 
 fn setup(mut commands: Commands) {
