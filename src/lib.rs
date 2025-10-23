@@ -1,6 +1,8 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
+#[cfg(feature = "internal_bevy_egui")]
+mod egui_support;
 mod normalized_zoom_inputs;
 use bevy::{
     camera::CameraProjection,
@@ -116,36 +118,9 @@ impl Plugin for PanCamPlugin {
         .register_type::<PanCam>()
         .register_type::<DirectionKeys>();
 
-        #[cfg(feature = "bevy_egui")]
-        {
-            app.init_resource::<EguiWantsFocus>()
-                .add_systems(PostUpdate, check_egui_wants_focus)
-                .configure_sets(
-                    Update,
-                    PanCamSystems.run_if(resource_equals(EguiWantsFocus(false))),
-                );
-        }
+        #[cfg(feature = "internal_bevy_egui")]
+        app.add_plugins(egui_support::EguiPanCamPlugin);
     }
-}
-
-#[derive(Resource, Deref, DerefMut, PartialEq, Eq, Default)]
-#[cfg(feature = "bevy_egui")]
-struct EguiWantsFocus(bool);
-
-// todo: make run condition when Bevy supports mutable resources in them
-#[cfg(feature = "bevy_egui")]
-fn check_egui_wants_focus(
-    mut contexts: Query<&mut bevy_egui::EguiContext>,
-    mut wants_focus: ResMut<EguiWantsFocus>,
-) {
-    let ctx = contexts.iter_mut().next();
-    let new_wants_focus = if let Some(ctx) = ctx {
-        let ctx = ctx.into_inner().get_mut();
-        ctx.wants_pointer_input() || ctx.wants_keyboard_input()
-    } else {
-        false
-    };
-    wants_focus.set_if_neq(EguiWantsFocus(new_wants_focus));
 }
 
 fn do_camera_zoom(
