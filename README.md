@@ -68,7 +68,7 @@ See the [`simple`](./examples/simple.rs) and [`toggle`](./examples/toggle.rs) ex
 
 ## Cargo features
 
-- `bevy_egui_<major>_<minor>` makes pancam cameras not react when the mouse or keyboard focus is on widgets created with the specific [`bevy_egui`](https://github.com/mvlabat/bevy_egui) release.
+- `bevy_egui_<major>_<minor>` makes pancam cameras not react when the mouse or keyboard focus is on widgets created with the specific [`bevy_egui`](https://github.com/mvlabat/bevy_egui) release. The feature is suffixed with the egui version because `bevy_egui` typically releases multiple breaking versions per Bevy release, and we don't want to be forced to break on every `bevy_egui` release.
 
 ## Bevy Version Support
 

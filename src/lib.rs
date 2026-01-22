@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature = "bevy_egui")]
+#[cfg(feature = "internal_bevy_egui")]
 mod egui_support;
 mod normalized_zoom_inputs;
 use bevy::{
@@ -118,7 +118,7 @@ impl Plugin for PanCamPlugin {
         .register_type::<PanCam>()
         .register_type::<DirectionKeys>();
 
-        #[cfg(feature = "bevy_egui")]
+        #[cfg(feature = "internal_bevy_egui")]
         app.add_plugins(egui_support::EguiPanCamPlugin);
     }
 }

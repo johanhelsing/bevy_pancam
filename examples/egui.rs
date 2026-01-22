@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_egui::{
+use bevy_egui_0_39::{
     EguiContexts, EguiPlugin, EguiPrimaryContextPass,
     egui::{self, ScrollArea},
 };
