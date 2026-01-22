@@ -10,37 +10,34 @@ repository = "https://github.com/johanhelsing/bevy_pancam"
 version = "0.19.0"
 
 [features]
-bevy_egui_0_38 = ["dep:bevy_egui_0_38", "internal_bevy_egui"]
-bevy_egui_0_37 = ["dep:bevy_egui_0_37", "internal_bevy_egui"]
+bevy_egui_0_39 = ["dep:bevy_egui_0_39", "internal_bevy_egui"]
 internal_bevy_egui = []
 
 [dependencies]
-bevy = { version = "0.17", default-features = false, features = [
+bevy = { version = "0.18", default-features = false, features = [
 	"bevy_window",
 	"bevy_core_pipeline",
 	"bevy_log",
 ] }
-bevy_egui_0_37 = { package = "bevy_egui", version = "0.37", optional = true, default-features = false }
-bevy_egui_0_38 = { package = "bevy_egui", version = "0.38", optional = true, default-features = false }
+bevy_egui_0_39 = { package = "bevy_egui", version = "0.39", optional = true, default-features = false }
 
 [dev-dependencies]
-bevy = { version = "0.17", default-features = false, features = [
-  "bevy_asset",
-  "bevy_sprite_render",
-  "bevy_winit",
-  "bevy_ui",
-  "default_font",
-  "bevy_window",
-  "x11", # github actions runners don't have libxkbcommon installed, so can't use wayland
+bevy = { version = "0.18", default-features = false, features = [
+	"2d",
+	"bevy_mikktspace",
 ] }
-bevy-inspector-egui = { version = "0.34", default-features = false, features = ["bevy_render"] }
-bevy_egui_0_38 = { package = "bevy_egui", version = "0.38", default-features = false, features = ["default_fonts"] }
+bevy-inspector-egui = { version = "0.36", default-features = false, features = [
+	"bevy_render",
+] }
+bevy_egui_0_39 = { package = "bevy_egui", version = "0.39", default-features = false, features = [
+	"default_fonts",
+] }
 rand = "0.9"
 
 [[example]]
 name = "egui"
-required-features = ["bevy_egui_0_38"]
+required-features = ["bevy_egui_0_39"]
 
 [[example]]
 name = "inspector"
-required-features = ["bevy_egui_0_37"]
+required-features = ["bevy_egui_0_39"]

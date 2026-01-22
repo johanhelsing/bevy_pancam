@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_egui_0_37::EguiPlugin;
+use bevy_egui_0_39::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_pancam::{PanCam, PanCamPlugin};
 use rand::random;
