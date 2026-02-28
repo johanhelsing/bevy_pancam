@@ -277,6 +277,9 @@ fn do_camera_movement(
 
         let proj_area_size = projection.area.size();
 
+        let viewport_size = camera.logical_viewport_size().unwrap_or(window_size);
+        let world_units_per_pixel = proj_area_size / viewport_size;
+
         let mouse_delta = if !pan_cam
             .grab_buttons
             .iter()
@@ -284,14 +287,15 @@ fn do_camera_movement(
         {
             Vec2::ZERO
         } else {
-            let viewport_size = camera.logical_viewport_size().unwrap_or(window_size);
-            delta_device_pixels * proj_area_size / viewport_size
+            delta_device_pixels * world_units_per_pixel
         };
 
         let direction = pan_cam.move_keys.direction(&keyboard_buttons);
 
-        let keyboard_delta =
-            time.delta_secs() * direction.normalize_or_zero() * pan_cam.speed * projection.scale;
+        let keyboard_delta = time.delta_secs()
+            * direction.normalize_or_zero()
+            * pan_cam.speed
+            * world_units_per_pixel;
         let delta = mouse_delta - keyboard_delta;
 
         if delta == Vec2::ZERO {
@@ -339,10 +343,10 @@ pub struct PanCam {
     pub grab_buttons: Vec<MouseButton>,
     /// The keyboard keys that will be used to move the camera
     pub move_keys: DirectionKeys,
-    /// Speed for keyboard movement
+    /// Keyboard movement speed in logical pixels per second.
     ///
-    /// This is multiplied with the projection scale of the camera so the
-    /// speed stays proportional to the current "zoom" level
+    /// Converted to world units using the camera's projected area and viewport
+    /// size, so it works correctly with all scaling modes (including `AutoMin`).
     pub speed: f32,
     /// Whether camera currently responds to user input
     pub enabled: bool,
