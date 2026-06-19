@@ -26,9 +26,6 @@ bevy = { version = "0.19", default-features = false, features = [
 	"2d",
 	"bevy_mikktspace",
 ] }
-#bevy-inspector-egui = { version = "0.36", default-features = false, features = [
-#	"bevy_render",
-#] }
 bevy_egui_0_40 = { package = "bevy_egui", version = "0.40", default-features = false, features = [
 	"default_fonts",
 	"render",
@@ -37,8 +34,4 @@ rand = "0.9"
 
 [[example]]
 name = "egui"
-required-features = ["bevy_egui_0_40"]
-
-[[example]]
-name = "inspector"
 required-features = ["bevy_egui_0_40"]
