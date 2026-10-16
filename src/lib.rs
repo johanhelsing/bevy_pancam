@@ -7,12 +7,9 @@ mod normalized_zoom_inputs;
 use bevy::{
     camera::CameraProjection,
     input::{gestures::PinchGesture, mouse::MouseWheel},
-    math::{
-        Rect,
-        bounding::{Aabb2d, BoundingVolume},
-        vec2,
-    },
+    math::{Rect, vec2},
     prelude::*,
+    shape::{Aabb2d, BoundingVolume},
     window::PrimaryWindow,
 };
 use normalized_zoom_inputs::NormalizedZoomInputs;
