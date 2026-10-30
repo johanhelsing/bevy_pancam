@@ -109,7 +109,9 @@ impl Plugin for PanCamPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (do_camera_movement, do_camera_zoom).in_set(PanCamSystems),
+            (do_camera_movement, do_camera_zoom)
+                .chain()
+                .in_set(PanCamSystems),
         )
         .add_observer(on_clamp_bounds)
         .register_type::<PanCam>()
@@ -442,9 +444,29 @@ impl Default for PanCam {
 mod tests {
     use std::f32::INFINITY;
 
-    use bevy::prelude::OrthographicProjection;
+    use bevy::ecs::schedule::{LogLevel, ScheduleBuildSettings};
+    use bevy::prelude::*;
 
     use super::*;
+    use bevy::prelude::OrthographicProjection;
+
+    #[test]
+    fn pancam_has_no_execution_order_ambiguities() {
+        let mut app = App::new();
+        app.add_plugins(PanCamPlugin);
+        app.configure_schedules(ScheduleBuildSettings {
+            ambiguity_detection: LogLevel::Error,
+            ..default()
+        });
+
+        let result = app
+            .world_mut()
+            .schedule_scope(Update, |world, schedule| schedule.initialize(world));
+
+        if let Err(e) = result {
+            panic!("PanCamPlugin should not introduce execution order ambiguities: {e}");
+        }
+    }
 
     /// Simple mock function to construct a square projection from a window size
     fn mock_proj(window_size: Vec2) -> OrthographicProjection {
